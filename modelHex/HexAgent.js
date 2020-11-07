@@ -16,19 +16,20 @@ class HexAgent extends Agent {
         let size = board.length;
         let available = getEmptyHex(board);
         let nTurn = size * size - available.length;
-        console.log(nTurn)
-        if (nTurn == 0) { // First move
-            console.log([Math.floor(size / 2), Math.floor(size / 2) - 1])
+        console.log(nTurn);
+        if (nTurn == 0) {
+            // First move
+            console.log([Math.floor(size / 2), Math.floor(size / 2) - 1]);
             return [Math.floor(size / 2), Math.floor(size / 2) - 1];
         } else if (nTurn == 1) {
-            console.log([Math.floor(size / 2), Math.floor(size / 2)])
+            console.log([Math.floor(size / 2), Math.floor(size / 2)]);
             return [Math.floor(size / 2), Math.floor(size / 2)];
         }
 
-        let move = available[Math.round(Math.random() * (available.length - 1))];
+        let move =
+            available[Math.round(Math.random() * (available.length - 1))];
         return [Math.floor(move / board.length), move % board.length];
     }
-
 }
 
 module.exports = HexAgent;
@@ -36,7 +37,7 @@ module.exports = HexAgent;
 /**
  * Return an array containing the id of the empty hex in the board
  * id = row * size + col;
- * @param {Matrix} board 
+ * @param {Matrix} board
  */
 function getEmptyHex(board) {
     let result = [];
