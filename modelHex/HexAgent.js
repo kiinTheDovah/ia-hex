@@ -461,10 +461,10 @@ function agregarHijos(nodoEvaluado, id_Agent) {
     //let numeroNodosRand = 2;
     /*
     let dijkstra = [[getRandomInt(0,board.length),getRandomInt(0,board.length)],
-   [getRandomInt(0,board.length),getRandomInt(0,board.length)],
-   [getRandomInt(0,board.length),getRandomInt(0,board.length)],
-   [getRandomInt(0,board.length),getRandomInt(0,board.length)],
-   [getRandomInt(0,board.length),getRandomInt(0,board.length)]];  
+    [getRandomInt(0,board.length),getRandomInt(0,board.length)],
+    [getRandomInt(0,board.length),getRandomInt(0,board.length)],
+    [getRandomInt(0,board.length),getRandomInt(0,board.length)],
+    [getRandomInt(0,board.length),getRandomInt(0,board.length)]];  
 
                     
     */
