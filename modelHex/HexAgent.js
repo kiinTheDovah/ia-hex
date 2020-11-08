@@ -455,7 +455,7 @@ function generarHojas(listOfChildren, limite, id_Agent, hash) {
 function agregarHijos(nodoEvaluado, id_Agent) {
     let board = nodoEvaluado.board;
     let id_Rival = rival(id_Agent);
-    let available = getEmptyHex(board);
+    let available = getHexAt(board, 0);
     //let turno = this.getID();
     //console.log('esta sacando nodos: ',id_Agent)
     //let numeroNodosRand = 2;
