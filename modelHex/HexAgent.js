@@ -12,13 +12,14 @@ class HexAgent extends Agent {
      * Example: [1, 1]
      */
     send() {
+        var start = new Date().getTime();
         let board = this.perception;
         let size = board.length;
         let available = getHexAt(board, 0);
         let nTurn = size * size - available.length;
         console.log(nTurn);
-        console.log(board);
-        checkAround(board, [1, 1]);
+        console.log('board: ', board);
+
         if (nTurn == 0) {
             // First move
             console.log([Math.floor(size / 2), Math.floor(size / 2) - 1]);
@@ -32,6 +33,9 @@ class HexAgent extends Agent {
             available[Math.round(Math.random() * (available.length - 1))];
         console.log('movimiento aleatorio');
         console.log(move);
+        var end = new Date().getTime();
+        var time = (end - start) / 1000;
+        console.log('time: ', time, 's');
         return move;
     }
 }
@@ -67,60 +71,12 @@ function getHexAt(board, pid) {
     return result;
 }
 
-function aroundPush(board, pos, i) {
-    let aux;
-    switch (board[pos[0] - 1][pos[1] + 1]) {
-        case 0:
-            aux = 0;
-            break;
-        case '1':
-            aux = 1;
-            break;
-        default:
-            // case '2'
-            aux = 2;
-            break;
-    }
-    around[aux].push(i);
-}
 function checkAround(board, pos) {
-    let around = [[]];
+    let around = [[], [], []];
 
     /* console.log('around');
     console.log(around); */
-    let available = [];
-    if (pos[0] != 0) {
-        //no estoy arriba
-        available.push([pos[0] - 1, pos[1]]);
-        if (pos[0] != board.length - 1) {
-            // no estoy ni arriba ni abajo
-            available.push([pos[0] - 1, pos[1]]);
-            if (pos[1] != 0) {
-                //no estoy ni arriba ni abajo ni a la izquierda
-                available.push([pos[0], pos[1] - 1]);
-                available.push([pos[0] + 1, pos[1] - 1]);
-            }
-            if (pos[1] != board.length - 1) {
-                // no estoy ni arriba ni abajo ni a la derecha
-                available.push([pos[0] - 1, pos[1] + 1]);
-                available.push([pos[0], pos[1] + 1]);
-            }
-        } else {
-            //estoy abajo
-            if (pos[1] != 0) {
-                //estoy abajo pero no a la izquierda
-                available.push([pos[0], pos[1] - 1]);
-            }
-            if (pos[1] != board.length - 1) {
-                // estoy abajo pero no a la derecha
-                available.push([pos[0] - 1, pos[1] + 1]);
-                available.push([pos[0], pos[1] + 1]);
-            }
-        }
-    } else {
-        //estoy arriba
-        // incomplete
-    }
+
     let up = pos[0] == 0;
     let down = pos[0] == board.length - 1;
     let left = pos[1] == 0;
@@ -128,68 +84,39 @@ function checkAround(board, pos) {
 
     for (let i = 0; i < 6; i++) {
         switch (i) {
-            case 0: //arriba
+            case 0: //up
                 if (!up) {
-                    aroundPush(board, pos, i);
+                    around[board[pos[0] - 1][pos[1]]].push(i);
                 }
                 break;
-            case 1: //arriba & derecha
+            case 1: //up & right
                 if (!up && !right) {
-                    aroundPush(board, pos, i);
+                    around[board[pos[0] - 1][pos[1] + 1]].push(i);
                 }
                 break;
-            case 2: //arriba
-                if (pos[0] != 0) {
-                    if (board[pos[0]][pos[1]] == 0) {
-                        around[0].push(i);
-                    } else if (board[pos[0]][pos[1]] == '1') {
-                        around[1].push(i);
-                    } else around[2].push(i);
+            case 2: //right
+                if (!right) {
+                    around[board[pos[0]][pos[1] + 1]].push(i);
                 }
                 break;
-            case 3: //arriba
-                if (pos[0] != 0) {
-                    if (board[pos[0]][pos[1]] == 0) {
-                        around[0].push(i);
-                    } else if (board[pos[0]][pos[1]] == '1') {
-                        around[1].push(i);
-                    } else around[2].push(i);
+            case 3: //down
+                if (!down) {
+                    around[board[pos[0] + 1][pos[1]]].push(i);
                 }
                 break;
-            case 4: //arriba
-                if (pos[0] != 0) {
-                    if (board[pos[0]][pos[1]] == 0) {
-                        around[0].push(i);
-                    } else if (board[pos[0]][pos[1]] == '1') {
-                        around[1].push(i);
-                    } else around[2].push(i);
+            case 4: // down & left
+                if (!down && !left) {
+                    around[board[pos[0] + 1][pos[1] - 1]].push(i);
                 }
                 break;
-            case 5: //arriba
-                if (pos[0] != 0) {
-                    if (board[pos[0]][pos[1]] == 0) {
-                        around[0].push(i);
-                    } else if (board[pos[0]][pos[1]] == '1') {
-                        around[1].push(i);
-                    } else around[2].push(i);
+            case 5: //left
+                if (!left) {
+                    around[board[pos[0]][pos[1] - 1]].push(i);
                 }
-                break;
-
-            default:
                 break;
         }
     }
-
-    for (let i = 0; i < available.length; i++) {
-        if (board[available[i][0]][available[i][1]] == 0) {
-            around[0].push(available[i]);
-        } else if (board[available[i][0]][available[i][1]] == '1') {
-        } else {
-            around[2].push(available[i]);
-        }
-    }
-    console.log('around');
-    console.log(around);
+    return around;
 }
 
 function pathFinder(board, pid) {
