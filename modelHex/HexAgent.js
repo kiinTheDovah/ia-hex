@@ -19,6 +19,7 @@ class HexAgent extends Agent {
         let nTurn = size * size - available.length;
         console.log(nTurn);
         console.log('board: ', board);
+        console.log('around', checkAround(board, [1, 1]));
 
         if (nTurn == 0) {
             // First move
@@ -51,10 +52,10 @@ function getHexAt(board, pid) {
     let id = 0;
     switch (pid) {
         case 1:
-            id = '1';
+            id = 1;
             break;
         case 2:
-            id = '2';
+            id = 2;
             break;
         default:
             break;
@@ -63,7 +64,7 @@ function getHexAt(board, pid) {
     let size = board.length;
     for (let k = 0; k < size; k++) {
         for (let j = 0; j < size; j++) {
-            if (board[k][j] === id) {
+            if (board[k][j] == id) {
                 result.push([k, j]);
             }
         }
