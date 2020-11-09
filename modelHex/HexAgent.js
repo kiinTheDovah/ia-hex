@@ -75,48 +75,6 @@ class HexAgent extends Agent {
         console.log('timeFull: ', timeFull, 's');
 
         return available[Math.round(Math.random() * (available.length - 1))];
-
-        //console.log(amplitud(root,this.getID(),4));
-        //console.log(minimax(nodoMinmax,2,nodoMinmax.type,this.getID()))
-        console.log('Pienso, luego existo...');
-        //Se crea el arbol con todo en infinito
-        let nodoRaizMinMax = generarArbol(raiz, this.getID(), limite);
-        //console.log(nodoRaizMinMax);
-        var end = new Date().getTime();
-        var time = (end - start) / 1000;
-        console.log('time: ', time, 's');
-        start = new Date().getTime();
-        //Le pasamos el arbol a minimax para que retorne el mejor valor y cambie los infinitos del arbol
-        let valorMinimax = minimax(
-            nodoRaizMinMax,
-            limite,
-            nodoRaizMinMax.type,
-            agente
-        );
-        end = new Date().getTime();
-        time = (end - start) / 1000;
-        console.log('time: ', time, 's');
-        //Le pregunta al arbol con utilidad definida cual de sus nodos es igual al minimax
-        start = new Date().getTime();
-        let jugada = retornarPosition(nodoRaizMinMax, valorMinimax);
-        end = new Date().getTime();
-        time = (end - start) / 1000;
-        console.log('time: ', time, 's');
-        console.log(
-            'El valor del mejor camino con minimax en ' +
-                limite +
-                ' niveles sin un hash con una heuristica chafa es: ',
-            valorMinimax
-        );
-        //console.log('arbol generado: ',nodoRaizMinMax);
-        console.log('la jugada para ' + agente + ' es: ', jugada);
-        //console.log(generarArbol(raiz,this.getID(),limite))
-
-        let move =
-            available[Math.round(Math.random() * (available.length - 1))];
-
-        //return [Math.floor(move / board.length), move % board.length];
-        return jugada;
     }
 }
 
@@ -270,113 +228,12 @@ function heuristica(board, id_Agent) {
 }
 
 /**
- * Retorna un arbol de la manera {raiz [hijo1 [hijo1.1, hijo1.2], hijo2 []]}
- */
-
-function generarArbol(nodo, id_Agent, limite) {
-    let nodoEvaluado = nodo;
-    let hash = [];
-
-    if (avoidRepeatedState(nodoEvaluado, hash)) {
-        agregarHijos(nodoEvaluado, id_Agent);
-    } //else console.log('me salte un nodo')
-
-    if (nodoEvaluado.children[0] == null) {
-        console.log('Ningun camino es viable.');
-    }
-    generarHojas(nodoEvaluado.children, limite, id_Agent, hash);
-    //console.log(hash.length)
-    return nodo;
-}
-
-/**
- * Funcion recursiva que actualiza el array de las hojas del root
- */
-function generarHojas(listOfChildren, limite, id_Agent, hash) {
-    if (listOfChildren[0] == null) {
-        return null;
-    }
-
-    if (listOfChildren[0].level == limite) {
-        return null;
-    } else {
-        for (let i = 0; i < listOfChildren.length; i++) {
-            //Esto falla si no llega a tener hijos
-            agregarHijos(listOfChildren[i], id_Agent);
-            //console.log('considerate agregada B)')
-            if (listOfChildren[i].children[0] == null) {
-                console.log(
-                    'Dijkstra() failed: Hay un men sin hijos en el nivel: ',
-                    listOfChildren[i].level
-                );
-            }
-            listOfChildren[i].children.push(
-                generarHojas(listOfChildren[i].children, limite, hash)
-            );
-            listOfChildren[i].children.pop();
-        }
-    }
-}
-
-/**
  * Copia un board en un clipboard (muy original)
  */
 
 function copyBoard(clipboard, board) {
     for (let i = 0; i < board.length; i++) {
         clipboard.push(board[i].slice());
-    }
-}
-
-/**
- * Es agregar nodo pero con la nueva implementacion :D
- */
-function agregarHijos(nodoEvaluado, id_Agent) {
-    let board = nodoEvaluado.board;
-    let id_Rival = rival(id_Agent);
-    let available = getHexAt(board, 0);
-    let length = available.length;
-    let dijkstra = [
-        available.splice(Math.round(Math.random() * (length - 1)), 1)[0],
-        available.splice(Math.round(Math.random() * (length - 2)), 1)[0],
-        available.splice(Math.round(Math.random() * (length - 3)), 1)[0],
-        available.splice(Math.round(Math.random() * (length - 4)), 1)[0],
-    ];
-
-    for (let i = 0; i < dijkstra.length; i++) {
-        let v_x = dijkstra[i][0];
-        let v_y = dijkstra[i][1];
-
-        if (board[v_x][v_y] == 0) {
-            let newBoard = [];
-
-            copyBoard(newBoard, board);
-            newBoard[v_x][v_y] = id_Agent;
-            if (nodoEvaluado.type == 'MAX') {
-                nodoEvaluado.children.push(
-                    crearHijo(
-                        'MIN',
-                        nodoEvaluado.level + 1,
-                        -nodoEvaluado.mown,
-                        -nodoEvaluado.utility,
-                        newBoard,
-                        [v_x, v_y]
-                    )
-                );
-            } else {
-                newBoard[v_x][v_y] = id_Rival;
-                nodoEvaluado.children.push(
-                    crearHijo(
-                        'MAX',
-                        nodoEvaluado.level + 1,
-                        -nodoEvaluado.mown,
-                        -nodoEvaluado.utility,
-                        newBoard,
-                        [v_x, v_y]
-                    )
-                );
-            }
-        }
     }
 }
 
@@ -434,19 +291,12 @@ function crearHijo(type, mown, utility, board, action) {
  * @param {Matrix} board
  */
 
-function retornarPosition(nodo, value) {
-    for (let i = 0; i < nodo.children.length; i++) {
-        if (nodo.children[i].utility == value) {
-            return nodo.children[i].action;
-        }
-    }
-}
 function changeType(type) {
     type == 'MAX' ? 'MIN' : 'MAX';
 }
 
 function fijkstra(board) {
-    // se supone que usa el nodo para crear nuevos nodos
+    // false dijkstra
     let available = getHexAt(board, 0);
     let length = available.length;
     let dijkstra = [
