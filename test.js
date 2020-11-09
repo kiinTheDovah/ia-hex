@@ -1,8 +1,5 @@
-function aro() {
-    let around = [[]];
-    around[1] = [2];
-
-    console.log(around);
+let id_Agent = 2;
+function rival(id_Agent) {
+    return id_Agent == 1 ? 2 : 1;
 }
-
-aro();
+console.log(rival(id_Agent));

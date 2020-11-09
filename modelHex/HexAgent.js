@@ -30,14 +30,15 @@ class HexAgent extends Agent {
             board: board,
             action: null,
         };
-        if (nTurn % 2 == 0) {
+
+        /* if (nTurn % 2 == 0) {
             // == 0 primer turno // == 1 segundo turno
             let row = prompt('row: ', '0');
             let column = prompt('column: ', '0');
             let play = [row, column];
             console.log('hooman: ', play);
             return play;
-        }
+        } */
         if (nTurn == 0) {
             // First move
             //console.log('el turno del agente: ',this.getID())
@@ -54,12 +55,17 @@ class HexAgent extends Agent {
             ]);
             return [Math.floor(size / 2), Math.floor(size / 2)];
         }
+        let fullTree = makeTree(board, limite, id_Agent, nodos);
+        let greatMinmax = minmax(fullTree);
+        let move = turn(greatMinmax);
+        return true;
 
         //console.log(amplitud(root,this.getID(),4));
         //console.log(minimax(nodoMinmax,2,nodoMinmax.type,this.getID()))
         console.log('Pienso, luego existo...');
         //Se crea el arbol con todo en infinito
         let nodoRaizMinMax = generarArbol(raiz, this.getID(), limite);
+        //console.log(nodoRaizMinMax);
         var end = new Date().getTime();
         var time = (end - start) / 1000;
         console.log('time: ', time, 's');
@@ -193,12 +199,7 @@ function pathFinder(board, pid) {
  * @param {Matrix} board
  */
 function rival(id_Agent) {
-    switch (id_Agent) {
-        case '1':
-            return '2';
-        case '2':
-            return '1';
-    }
+    return id_Agent == 1 ? 2 : 1;
 }
 
 //TODO
@@ -318,11 +319,12 @@ function agregarHijos(nodoEvaluado, id_Agent) {
     let board = nodoEvaluado.board;
     let id_Rival = rival(id_Agent);
     let available = getHexAt(board, 0);
+    let length = available.length;
     let dijkstra = [
-        available[Math.round(Math.random() * (available.length - 1))],
-        available[Math.round(Math.random() * (available.length - 1))],
-        available[Math.round(Math.random() * (available.length - 1))],
-        available[Math.round(Math.random() * (available.length - 1))],
+        available.splice(Math.round(Math.random() * (length - 1)), 1)[0],
+        available.splice(Math.round(Math.random() * (length - 2)), 1)[0],
+        available.splice(Math.round(Math.random() * (length - 3)), 1)[0],
+        available.splice(Math.round(Math.random() * (length - 4)), 1)[0],
     ];
 
     for (let i = 0; i < dijkstra.length; i++) {
@@ -424,4 +426,37 @@ function retornarPosition(nodo, value) {
             return nodo.children[i].action;
         }
     }
+}
+
+function fijkstra(board) {
+    // se supone que usa el nodo para crear nuevos nodos
+    let available = getHexAt(board, 0);
+    let length = available.length;
+    let dijkstra = [
+        available.splice(Math.round(Math.random() * (length - 1)), 1)[0],
+        available.splice(Math.round(Math.random() * (length - 2)), 1)[0],
+        available.splice(Math.round(Math.random() * (length - 3)), 1)[0],
+        available.splice(Math.round(Math.random() * (length - 4)), 1)[0],
+    ];
+    return dijkstra;
+}
+
+function makeNodos(board, tree, level, id_Agent) {
+    for (let i = 0; i < tree[level - 1].length; i++) {
+        tree[level].push(fijkstra(tree[level - 1][i]).board);
+    }
+}
+function makeTree(board, limite, id_Agent, nodos) {
+    let tree = [];
+    for (let i = 0; i < limite; i++) {
+        tree.push([]);
+    }
+    let level = 0;
+    tree[level].push(nodos);
+    level++;
+    while (level < limite) {
+        tree[level] = makeNodos(board, tree, level, id_Agent);
+        level++;
+    }
+    return tree;
 }
