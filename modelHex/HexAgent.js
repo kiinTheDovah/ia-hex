@@ -18,7 +18,7 @@ class HexAgent extends Agent {
         let size = board.length;
         let available = getHexAt(board, 0);
         let nTurn = size * size - available.length;
-        let limite = 10;
+        let limite = 11;
         let agente = this.getID();
         let raiz = {
             type: 'MAX',
@@ -54,11 +54,11 @@ class HexAgent extends Agent {
         }
         console.log('creating Yggdrasil...');
         let fullTree = makeTree(board, limite, agente, raiz);
-        console.log('tree: ', fullTree);
+
         var endMakeTree = new Date().getTime();
         var timeMakeTree = (endMakeTree - start) / 1000;
         console.log('timeMakeTree: ', timeMakeTree, 's');
-
+        console.log('tree: ', fullTree);
         /* var startAux = new Date().getTime();
         let greatMinmax = minmax(fullTree);
         var endMinMax = new Date().getTime();
