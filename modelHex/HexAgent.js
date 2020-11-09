@@ -52,6 +52,7 @@ class HexAgent extends Agent {
             ]);
             return [Math.floor(size / 2), Math.floor(size / 2)];
         }
+        console.log('creating Yggdrasil...');
         let fullTree = makeTree(board, limite, agente, raiz);
         console.log('tree: ', fullTree);
         var endMakeTree = new Date().getTime();
