@@ -26,6 +26,7 @@ class HexAgent extends Agent {
             utility: -infinito,
             board: board,
             action: null,
+            padre: null,
         };
 
         /* if (nTurn % 2 == 0) {
@@ -276,13 +277,14 @@ function minimax(node, limite, minMax, id_Agent) {
 /**
  * Crea un Nodo con la nueva implementacion
  */
-function crearHijo(type, mown, utility, board, action) {
+function crearHijo(type, mown, utility, board, action, padre) {
     let node = {
         type: type,
         mown: -mown,
         utility: -utility,
         board: board,
         action: action,
+        padre: padre,
     };
     return node;
 }
@@ -315,12 +317,13 @@ function makeNodos(board, tree, level, id_Agent) {
     let utility = tree[level - 1][0].utility;
     for (let i = 0; i < tree[level - 1].length; i++) {
         let nodos = fijkstra(tree[level - 1][i].board);
+        let padre = [level - 1, i];
         for (let j = 0; j < nodos.length; j++) {
             let newBoard = [];
             copyBoard(newBoard, board);
             newBoard[nodos[j][0]][nodos[j][1]] = id_Agent;
             tree[level].push(
-                crearHijo(type, mown, utility, newBoard, nodos[j])
+                crearHijo(type, mown, utility, newBoard, nodos[j], padre)
             );
         }
     }
