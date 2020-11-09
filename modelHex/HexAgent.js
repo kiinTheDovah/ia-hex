@@ -59,7 +59,7 @@ class HexAgent extends Agent {
         var endMakeTree = new Date().getTime();
         var timeMakeTree = (endMakeTree - start) / 1000;
         console.log('timeMakeTree: ', timeMakeTree, 's');
-        console.log('tree: ', fullTree);
+        //console.log('tree: ', fullTree);  // this fills the memory
         /* var startAux = new Date().getTime();
         let greatMinmax = minmax(fullTree);
         var endMinMax = new Date().getTime();
