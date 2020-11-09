@@ -20,11 +20,8 @@ class HexAgent extends Agent {
         let nTurn = size * size - available.length;
         let limite = 10;
         let agente = this.getID();
-
         let raiz = {
             type: 'MAX',
-            level: 0,
-            children: [],
             mown: -infinito,
             utility: -infinito,
             board: board,
@@ -55,10 +52,29 @@ class HexAgent extends Agent {
             ]);
             return [Math.floor(size / 2), Math.floor(size / 2)];
         }
-        let fullTree = makeTree(board, limite, id_Agent, nodos);
+        let fullTree = makeTree(board, limite, agente, raiz);
+        console.log('tree: ', fullTree);
+        var endMakeTree = new Date().getTime();
+        var timeMakeTree = (endMakeTree - start) / 1000;
+        console.log('timeMakeTree: ', timeMakeTree, 's');
+
+        /* var startAux = new Date().getTime();
         let greatMinmax = minmax(fullTree);
+        var endMinMax = new Date().getTime();
+        var timeMinMax = (endMinMax - startAux) / 1000;
+        console.log('timeMinMax: ', timeMinMax, 's');*/
+
+        /*startAux = new Date().getTime();
         let move = turn(greatMinmax);
-        return true;
+        var endturn = new Date().getTime();
+        var timeTurn = (endturn - startAux) / 1000;
+        console.log('timeTurn: ', timeTurn, 's'); */
+
+        var endFull = new Date().getTime();
+        var timeFull = (endFull - start) / 1000;
+        console.log('timeFull: ', timeFull, 's');
+
+        return available[Math.round(Math.random() * (available.length - 1))];
 
         //console.log(amplitud(root,this.getID(),4));
         //console.log(minimax(nodoMinmax,2,nodoMinmax.type,this.getID()))
@@ -402,11 +418,9 @@ function minimax(node, limite, minMax, id_Agent) {
 /**
  * Crea un Nodo con la nueva implementacion
  */
-function crearHijo(type, level, mown, utility, board, action) {
+function crearHijo(type, mown, utility, board, action) {
     let node = {
         type: type,
-        level: level,
-        children: [],
         mown: -mown,
         utility: -utility,
         board: board,
@@ -427,6 +441,9 @@ function retornarPosition(nodo, value) {
         }
     }
 }
+function changeType(type) {
+    type == 'MAX' ? 'MIN' : 'MAX';
+}
 
 function fijkstra(board) {
     // se supone que usa el nodo para crear nuevos nodos
@@ -442,20 +459,32 @@ function fijkstra(board) {
 }
 
 function makeNodos(board, tree, level, id_Agent) {
+    let type = changeType(tree[level - 1][0].type);
+    let mown = tree[level - 1][0].mown;
+    let utility = tree[level - 1][0].utility;
     for (let i = 0; i < tree[level - 1].length; i++) {
-        tree[level].push(fijkstra(tree[level - 1][i]).board);
+        let nodos = fijkstra(tree[level - 1][i].board);
+        for (let j = 0; j < nodos.length; j++) {
+            let newBoard = [];
+            copyBoard(newBoard, board);
+            newBoard[nodos[j][0]][nodos[j][1]] = id_Agent;
+            tree[level].push(
+                crearHijo(type, mown, utility, newBoard, nodos[j])
+            );
+        }
     }
 }
-function makeTree(board, limite, id_Agent, nodos) {
+function makeTree(board, limite, id_Agent, root) {
     let tree = [];
     for (let i = 0; i < limite; i++) {
         tree.push([]);
     }
+
     let level = 0;
-    tree[level].push(nodos);
+    tree[level].push(root);
     level++;
     while (level < limite) {
-        tree[level] = makeNodos(board, tree, level, id_Agent);
+        makeNodos(board, tree, level, id_Agent);
         level++;
     }
     return tree;
