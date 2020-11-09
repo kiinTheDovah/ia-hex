@@ -18,15 +18,7 @@ class HexAgent extends Agent {
         let available = getHexAt(board, 0);
         let nTurn = size * size - available.length;
         let limite = 10;
-        let root = {
-            type: 'MAX',
-            level: 0,
-            parent: null,
-            mown: -infinito,
-            utility: -infinito,
-            board: board,
-            action: null,
-        };
+        let agente = this.getID();
 
         let raiz = {
             type: 'MAX',
@@ -37,86 +29,48 @@ class HexAgent extends Agent {
             board: board,
             action: null,
         };
-
-        let nodoMinmax = {
-            type: 'MAX',
-            level: 0,
-            children: [
-                {
-                    type: 'MIN',
-                    level: 1,
-                    children: [
-                        {
-                            type: 'MAX',
-                            level: 2,
-                            children: [],
-                            board: board,
-                        },
-                        {
-                            type: 'MAX',
-                            level: 2,
-                            children: [],
-                            board: board,
-                        },
-                    ],
-                },
-                {
-                    type: 'MIN',
-                    level: 1,
-                    children: [
-                        {
-                            type: 'MAX',
-                            level: 2,
-                            children: [],
-                            board: board,
-                        },
-                        {
-                            type: 'MAX',
-                            level: 2,
-                            children: [],
-                            board: board,
-                        },
-                    ],
-                    board: board,
-                },
-            ],
-            board: board,
-        };
-
-        //console.log(board);
-        //console.log(hashNodeToId(root));
-
         if (nTurn == 0) {
             // First move
             //console.log('el turno del agente: ',this.getID())
-            console.log([Math.floor(size / 2), Math.floor(size / 2) - 1]);
+            console.log('jugada:', [
+                Math.floor(size / 2),
+                Math.floor(size / 2) - 1,
+            ]);
             return [Math.floor(size / 2), Math.floor(size / 2) - 1];
         } else if (nTurn == 1) {
             //console.log('el turno del agente: ',this.getID())
-            console.log([Math.floor(size / 2), Math.floor(size / 2)]);
+            console.log('jugada:', [
+                Math.floor(size / 2),
+                Math.floor(size / 2),
+            ]);
             return [Math.floor(size / 2), Math.floor(size / 2)];
         }
-        pathFinder(board, 1);
-        /* let move =
-            available[Math.round(Math.random() * (available.length - 1))];
-        console.log('movimiento aleatorio');
-        console.log(move);
-        var end = new Date().getTime();
-        var time = (end - start) / 1000;
-        console.log('time: ', time, 's');
-        return move; */
-        //Aqui estamos creando el arbol, recibe el estado donde se encuentra, el ID del jugador, y la cantidad de niveles
+
         //console.log(amplitud(root,this.getID(),4));
         //console.log(minimax(nodoMinmax,2,nodoMinmax.type,this.getID()))
         console.log('Pienso, luego existo...');
+        //Se crea el arbol con todo en infinito
         let nodoRaizMinMax = generarArbol(raiz, this.getID(), limite);
+        var end = new Date().getTime();
+        var time = (end - start) / 1000;
+        console.log('time: ', time, 's');
+        start = new Date().getTime();
+        //Le pasamos el arbol a minimax para que retorne el mejor valor y cambie los infinitos del arbol
         let valorMinimax = minimax(
             nodoRaizMinMax,
             limite,
             nodoRaizMinMax.type,
-            this.getID()
+            agente
         );
+        end = new Date().getTime();
+        time = (end - start) / 1000;
+        console.log('time: ', time, 's');
+        //Le pregunta al arbol con utilidad definida cual de sus nodos es igual al minimax
+        start = new Date().getTime();
         let jugada = retornarPosition(nodoRaizMinMax, valorMinimax);
+        end = new Date().getTime();
+        time = (end - start) / 1000;
+        console.log('time: ', time, 's');
         console.log(
             'El valor del mejor camino con minimax en ' +
                 limite +
@@ -124,16 +78,11 @@ class HexAgent extends Agent {
             valorMinimax
         );
         //console.log('arbol generado: ',nodoRaizMinMax);
-        console.log('la jugada para ' + this.getID() + ' es: ', jugada);
-
+        console.log('la jugada para ' + agente + ' es: ', jugada);
         //console.log(generarArbol(raiz,this.getID(),limite))
 
         let move =
             available[Math.round(Math.random() * (available.length - 1))];
-
-        var end = new Date().getTime();
-        var time = (end - start) / 1000;
-        console.log('time: ', time, 's');
 
         //return [Math.floor(move / board.length), move % board.length];
         return jugada;
@@ -163,7 +112,8 @@ function getHexAt(board, pid) {
     let size = board.length;
     for (let k = 0; k < size; k++) {
         for (let j = 0; j < size; j++) {
-            if (board[k][j] == id) {
+            if (board[k][j] == pid) {
+                //result.push(k * size + j);
                 result.push([k, j]);
             }
         }
@@ -229,6 +179,20 @@ function pathFinder(board, pid) {
     }
 }
 
+/**
+ * Retorna cual es el rival
+ * @param {Matrix} board
+ */
+function rival(id_Agent) {
+    switch (id_Agent) {
+        case '1':
+            return '2';
+        case '2':
+            return '1';
+    }
+}
+
+//TODO
 function hashNodeToId(node) {
     let board = node.board;
     let hashId = '';
@@ -241,6 +205,7 @@ function hashNodeToId(node) {
     return hashId;
 }
 
+//TODO
 function avoidRepeatedState(node, hash) {
     let hashId = hashNodeToId(node);
     //console.log(hashNum);
@@ -253,121 +218,8 @@ function avoidRepeatedState(node, hash) {
     return true;
 }
 
-function amplitud(nodo, id_Agent, limite) {
-    let nodoEvaluado = nodo;
-    let nodos = [];
-    let created = [];
-    let hash = [];
-
-    while (nodoEvaluado.level <= limite) {
-        //nodos.push(nodoEvaluado);
-
-        if (avoidRepeatedState(nodoEvaluado, hash)) {
-            agregarNodos(nodoEvaluado, nodos, id_Agent);
-            created.push(nodoEvaluado);
-        } //else console.log('me salte un nodo')
-
-        if (nodos[0] == null) {
-            console.log('Ningun camino es viable.');
-            break;
-        }
-        nodoEvaluado = nodos.shift();
-    }
-    //console.log(hash.length)
-    return created;
-}
-
-function rival(id_Agent) {
-    switch (id_Agent) {
-        case '1':
-            return '2';
-        case '2':
-            return '1';
-    }
-}
-
-function agregarNodos(nodoEvaluado, nodos, id_Agent) {
-    let board = nodoEvaluado.board;
-    let id_Rival = rival(id_Agent);
-    //let turno = this.getID();
-    //console.log('esta sacando nodos: ',id_Agent)
-    //let numeroNodosRand = 2;
-    let dijkstra = [
-        [getRandomInt(0, board.length), getRandomInt(0, board.length)],
-        [getRandomInt(0, board.length), getRandomInt(0, board.length)],
-        [getRandomInt(0, board.length), getRandomInt(0, board.length)],
-        [getRandomInt(0, board.length), getRandomInt(0, board.length)],
-        [getRandomInt(0, board.length), getRandomInt(0, board.length)],
-    ];
-
-    for (let i = 0; i < dijkstra.length; i++) {
-        let v_x = dijkstra[i][0];
-        let v_y = dijkstra[i][1];
-
-        if (board[v_x][v_y] == 0) {
-            let newBoard = [];
-
-            copyBoard(newBoard, board);
-            newBoard[v_x][v_y] = id_Agent;
-            //let newBoard = board.slice();
-            //let newBoard = [...board];
-            if (nodoEvaluado.type == 'MAX') {
-                nodos.push(
-                    crearNodo(
-                        'MIN',
-                        nodoEvaluado.level + 1,
-                        nodoEvaluado,
-                        -nodoEvaluado.mown,
-                        -nodoEvaluado.utility,
-                        newBoard,
-                        [v_x, v_y]
-                    )
-                );
-            } else {
-                newBoard[v_x][v_y] = id_Rival;
-                nodos.push(
-                    crearNodo(
-                        'MAX',
-                        nodoEvaluado.level + 1,
-                        nodoEvaluado,
-                        -nodoEvaluado.mown,
-                        -nodoEvaluado.utility,
-                        newBoard,
-                        [v_x, v_y]
-                    )
-                );
-            }
-            //nodos.push('anadi un nodo 1 :D')
-        }
-    }
-}
-
-function getRandomInt(min, max) {
-    return Math.floor(Math.random() * (max - min)) + min;
-}
-
-function copyBoard(clipboard, board) {
-    for (let i = 0; i < board.length; i++) {
-        clipboard.push(board[i].slice());
-    }
-}
-
-function crearNodo(type, level, parent, mown, utility, board, action) {
-    let node = {
-        type: type,
-        level: level,
-        parent: parent,
-        mown: mown,
-        utility: utility,
-        board: board,
-        action: action,
-    };
-    return node;
-}
-///////////////////////////////////////////////// COSAS BRUJAS ////////////////////////////////77////
-
 /**
- * Da un valor a el tablero
+ * Da un valor a un board
  */
 function heuristica(board, id_Agent) {
     let result = 0;
@@ -423,16 +275,7 @@ function generarHojas(listOfChildren, limite, id_Agent, hash) {
         return null;
     } else {
         for (let i = 0; i < listOfChildren.length; i++) {
-            //Esto falla creemos porque puede llegar una lista de nodos vacia, por ser aleatorios
-            /*
-            if(avoidRepeatedState(listOfChildren[i], hash)
-            ) {
-                agregarHijos(listOfChildren[i],id_Agent);
-                //console.log(listOfChildren[i])
-                listOfChildren[i].children.push(generarHojas(listOfChildren[i].children,limite,hash));
-                listOfChildren[i].children.pop();
-            }
-            */
+            //Esto falla si no llega a tener hijos
             agregarHijos(listOfChildren[i], id_Agent);
             //console.log('considerate agregada B)')
             if (listOfChildren[i].children[0] == null) {
@@ -450,24 +293,22 @@ function generarHojas(listOfChildren, limite, id_Agent, hash) {
 }
 
 /**
+ * Copia un board en un clipboard (muy original)
+ */
+
+function copyBoard(clipboard, board) {
+    for (let i = 0; i < board.length; i++) {
+        clipboard.push(board[i].slice());
+    }
+}
+
+/**
  * Es agregar nodo pero con la nueva implementacion :D
  */
 function agregarHijos(nodoEvaluado, id_Agent) {
     let board = nodoEvaluado.board;
     let id_Rival = rival(id_Agent);
-    let available = getEmptyHex(board);
-    //let turno = this.getID();
-    //console.log('esta sacando nodos: ',id_Agent)
-    //let numeroNodosRand = 2;
-    /*
-    let dijkstra = [[getRandomInt(0,board.length),getRandomInt(0,board.length)],
-   [getRandomInt(0,board.length),getRandomInt(0,board.length)],
-   [getRandomInt(0,board.length),getRandomInt(0,board.length)],
-   [getRandomInt(0,board.length),getRandomInt(0,board.length)],
-   [getRandomInt(0,board.length),getRandomInt(0,board.length)]];  
-
-                    
-    */
+    let available = getHexAt(board, 0);
     let dijkstra = [
         available[Math.round(Math.random() * (available.length - 1))],
         available[Math.round(Math.random() * (available.length - 1))],
@@ -484,8 +325,6 @@ function agregarHijos(nodoEvaluado, id_Agent) {
 
             copyBoard(newBoard, board);
             newBoard[v_x][v_y] = id_Agent;
-            //let newBoard = board.slice();
-            //let newBoard = [...board];
             if (nodoEvaluado.type == 'MAX') {
                 nodoEvaluado.children.push(
                     crearHijo(
@@ -550,7 +389,7 @@ function minimax(node, limite, minMax, id_Agent) {
 }
 
 /**
- * Es crear nodo pero con la nueva implementacion :D
+ * Crea un Nodo con la nueva implementacion
  */
 function crearHijo(type, level, mown, utility, board, action) {
     let node = {
@@ -564,6 +403,11 @@ function crearHijo(type, level, mown, utility, board, action) {
     };
     return node;
 }
+
+/**
+ * Dado el nodo padre, busca en sus primeros hijos cual es el que coicide con el valor maximo y retorna su accion
+ * @param {Matrix} board
+ */
 
 function retornarPosition(nodo, value) {
     for (let i = 0; i < nodo.children.length; i++) {
