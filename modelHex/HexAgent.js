@@ -1,4 +1,5 @@
 const Agent = require('ai-agents').Agent;
+//const readline = require('readline');
 let infinito = 9999999999;
 class HexAgent extends Agent {
     constructor(value) {
@@ -29,6 +30,14 @@ class HexAgent extends Agent {
             board: board,
             action: null,
         };
+        if (nTurn % 2 == 0) {
+            // == 0 primer turno // == 1 segundo turno
+            let row = prompt('row: ', '0');
+            let column = prompt('column: ', '0');
+            let play = [row, column];
+            console.log('hooman: ', play);
+            return play;
+        }
         if (nTurn == 0) {
             // First move
             //console.log('el turno del agente: ',this.getID())
