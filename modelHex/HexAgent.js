@@ -15,7 +15,7 @@ class HexAgent extends Agent {
         var start = new Date().getTime();
         let board = this.perception;
         let size = board.length;
-        let available = getEmptyHex(board);
+        let available = getHexAt(board, 0);
         let nTurn = size * size - available.length;
         let limite = 10;
         let agente = this.getID();
@@ -32,11 +32,17 @@ class HexAgent extends Agent {
         if (nTurn == 0) {
             // First move
             //console.log('el turno del agente: ',this.getID())
-            console.log([Math.floor(size / 2), Math.floor(size / 2) - 1]);
+            console.log('jugada:', [
+                Math.floor(size / 2),
+                Math.floor(size / 2) - 1,
+            ]);
             return [Math.floor(size / 2), Math.floor(size / 2) - 1];
         } else if (nTurn == 1) {
             //console.log('el turno del agente: ',this.getID())
-            console.log([Math.floor(size / 2), Math.floor(size / 2)]);
+            console.log('jugada:', [
+                Math.floor(size / 2),
+                Math.floor(size / 2),
+            ]);
             return [Math.floor(size / 2), Math.floor(size / 2)];
         }
 
@@ -45,6 +51,10 @@ class HexAgent extends Agent {
         console.log('Pienso, luego existo...');
         //Se crea el arbol con todo en infinito
         let nodoRaizMinMax = generarArbol(raiz, this.getID(), limite);
+        var end = new Date().getTime();
+        var time = (end - start) / 1000;
+        console.log('time: ', time, 's');
+        start = new Date().getTime();
         //Le pasamos el arbol a minimax para que retorne el mejor valor y cambie los infinitos del arbol
         let valorMinimax = minimax(
             nodoRaizMinMax,
@@ -52,9 +62,15 @@ class HexAgent extends Agent {
             nodoRaizMinMax.type,
             agente
         );
+        end = new Date().getTime();
+        time = (end - start) / 1000;
+        console.log('time: ', time, 's');
         //Le pregunta al arbol con utilidad definida cual de sus nodos es igual al minimax
+        start = new Date().getTime();
         let jugada = retornarPosition(nodoRaizMinMax, valorMinimax);
-
+        end = new Date().getTime();
+        time = (end - start) / 1000;
+        console.log('time: ', time, 's');
         console.log(
             'El valor del mejor camino con minimax en ' +
                 limite +
@@ -68,10 +84,6 @@ class HexAgent extends Agent {
         let move =
             available[Math.round(Math.random() * (available.length - 1))];
 
-        var end = new Date().getTime();
-        var time = (end - start) / 1000;
-        console.log('time: ', time, 's');
-
         //return [Math.floor(move / board.length), move % board.length];
         return jugada;
     }
@@ -84,18 +96,87 @@ module.exports = HexAgent;
  * id = row * size + col;
  * @param {Matrix} board
  */
-function getEmptyHex(board) {
+function getHexAt(board, pid) {
+    let id = 0;
+    switch (pid) {
+        case 1:
+            id = 1;
+            break;
+        case 2:
+            id = 2;
+            break;
+        default:
+            break;
+    }
     let result = [];
     let size = board.length;
     for (let k = 0; k < size; k++) {
         for (let j = 0; j < size; j++) {
-            if (board[k][j] === 0) {
+            if (board[k][j] == pid) {
                 //result.push(k * size + j);
                 result.push([k, j]);
             }
         }
     }
     return result;
+}
+
+function checkAround(board, pos) {
+    let around = [[], [], []];
+
+    /* console.log('around');
+    console.log(around); */
+
+    let up = pos[0] == 0;
+    let down = pos[0] == board.length - 1;
+    let left = pos[1] == 0;
+    let right = pos[1] == board.length - 1;
+
+    for (let i = 0; i < 6; i++) {
+        switch (i) {
+            case 0: //up
+                if (!up) {
+                    around[board[pos[0] - 1][pos[1]]].push(i);
+                }
+                break;
+            case 1: //up & right
+                if (!up && !right) {
+                    around[board[pos[0] - 1][pos[1] + 1]].push(i);
+                }
+                break;
+            case 2: //right
+                if (!right) {
+                    around[board[pos[0]][pos[1] + 1]].push(i);
+                }
+                break;
+            case 3: //down
+                if (!down) {
+                    around[board[pos[0] + 1][pos[1]]].push(i);
+                }
+                break;
+            case 4: // down & left
+                if (!down && !left) {
+                    around[board[pos[0] + 1][pos[1] - 1]].push(i);
+                }
+                break;
+            case 5: //left
+                if (!left) {
+                    around[board[pos[0]][pos[1] - 1]].push(i);
+                }
+                break;
+        }
+    }
+    return around;
+}
+
+function pathFinder(board, pid) {
+    let playedMoves = getHexAt(board, pid);
+    /*     if (playedMoves == null) {
+        return;
+    } */
+    for (let i = 0; i < playedMoves.length; i++) {
+        console.log(playedMoves[i]);
+    }
 }
 
 /**
@@ -227,7 +308,7 @@ function copyBoard(clipboard, board) {
 function agregarHijos(nodoEvaluado, id_Agent) {
     let board = nodoEvaluado.board;
     let id_Rival = rival(id_Agent);
-    let available = getEmptyHex(board);
+    let available = getHexAt(board, 0);
     let dijkstra = [
         available[Math.round(Math.random() * (available.length - 1))],
         available[Math.round(Math.random() * (available.length - 1))],
