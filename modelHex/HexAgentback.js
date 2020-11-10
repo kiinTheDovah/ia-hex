@@ -18,7 +18,7 @@ class HexAgent extends Agent {
         let size = board.length;
         let available = getHexAt(board, 0);
         let nTurn = size * size - available.length;
-        let limite = 3;
+        let limite = 10;
         let agente = this.getID();
         let raiz = {
             type: 'MAX',
@@ -54,12 +54,12 @@ class HexAgent extends Agent {
             return [Math.floor(size / 2), Math.floor(size / 2)];
         }
         console.log('creating Yggdrasil...');
-        let fullTree = makeTree(limite, agente, raiz);
+        let fullTree = makeTree(board, limite, agente, raiz);
 
         var endMakeTree = new Date().getTime();
         var timeMakeTree = (endMakeTree - start) / 1000;
         console.log('timeMakeTree: ', timeMakeTree, 's');
-        console.log('tree: ', fullTree); // this fills the memory
+        //console.log('tree: ', fullTree);  // this fills the memory
         /* var startAux = new Date().getTime();
         let greatMinmax = minmax(fullTree);
         var endMinMax = new Date().getTime();
@@ -179,44 +179,27 @@ function rival(id_Agent) {
 }
 
 //TODO
-function hashNodeToId(board) {
-    let hashId = 0;
-    let k = 0;
+function hashNodeToId(node) {
+    let board = node.board;
+    let hashId = '';
     for (let i = 0; i < board.length; i++) {
-        let row = 0;
         for (let j = 0; j < board.length; j++) {
-            row += (parseInt(board[i][j]) + 1) * 1.1 ** k;
-            //console.log(row);
-            k++;
+            let num = board[i][j];
+            hashId = hashId.concat(num.toString(10));
         }
-        //row *= k;
-        hashId += row;
-        //k *= 127;
     }
-    //console.log('k', k);
-    //console.log(hashId);
     return hashId;
 }
 
-/* 1    1232132 * 1
-2    3212123
-3    1132131
-4
-5
-6
-7
- */
 //TODO
-function avoidRepeatedState(board, hash) {
-    let hashId = hashNodeToId(board);
+function avoidRepeatedState(node, hash) {
+    let hashId = hashNodeToId(node);
     //console.log(hashNum);
     //console.log(isHashRepeated(node, hashNum));
-    for (let i = 0; i < hash.length; i++) {
-        if (hash[i] == hashId) {
-            return false;
-        }
+    if (hash.includes(hashId)) {
+        return false;
     }
-    hash.push(hashId);
+    hash.unshift(hashId);
     //console.log(hash);
     return true;
 }
@@ -251,16 +234,8 @@ function heuristica(board, id_Agent) {
  */
 
 function copyBoard(clipboard, board) {
-    let length = board.length;
-    for (let i = 0; i < length; i++) {
-        for (let j = 0; j < length; j++) {
-            if (board[i][j] != 0) {
-                clipboard[i][j] = board[i][j];
-            }
-            //clipboard[i].push(board[i][j]);
-        }
-
-        //clipboard.push(board[i].slice());
+    for (let i = 0; i < board.length; i++) {
+        clipboard.push(board[i].slice());
     }
 }
 
@@ -320,34 +295,23 @@ function crearHijo(type, mown, utility, board, action, padre) {
  */
 
 function changeType(type) {
-    return type == 'MAX' ? 'MIN' : 'MAX';
+    type == 'MAX' ? 'MIN' : 'MAX';
 }
 
 function fijkstra(board) {
     // false dijkstra
     let available = getHexAt(board, 0);
     let length = available.length;
-    let dijkstra = []; /* 
+    let dijkstra = [
         available.splice(Math.round(Math.random() * (length - 1)), 1)[0],
         available.splice(Math.round(Math.random() * (length - 2)), 1)[0],
         available.splice(Math.round(Math.random() * (length - 3)), 1)[0],
         available.splice(Math.round(Math.random() * (length - 4)), 1)[0],
-        available.splice(Math.round(Math.random() * (length - 5)), 1)[0],
-        available.splice(Math.round(Math.random() * (length - 6)), 1)[0],
-        available.splice(Math.round(Math.random() * (length - 7)), 1)[0],
-        available.splice(Math.round(Math.random() * (length - 8)), 1)[0],
-        available.splice(Math.round(Math.random() * (length - 9)), 1)[0],
-        available.splice(Math.round(Math.random() * (length - 10)), 1)[0],
-        available.splice(Math.round(Math.random() * (length - 11)), 1)[0],
-        available.splice(Math.round(Math.random() * (length - 12)), 1)[0],
-    ]; */
-    for (let i = 0; i < length; i++) {
-        dijkstra.push(available[i]);
-    }
+    ];
     return dijkstra;
 }
 
-function makeNodos(tree, level, id_Agent, hash) {
+function makeNodos(board, tree, level, id_Agent) {
     let type = changeType(tree[level - 1][0].type);
     let mown = tree[level - 1][0].mown;
     let utility = tree[level - 1][0].utility;
@@ -355,38 +319,24 @@ function makeNodos(tree, level, id_Agent, hash) {
         let nodos = fijkstra(tree[level - 1][i].board);
         let padre = [level - 1, i];
         for (let j = 0; j < nodos.length; j++) {
-            let board = tree[padre[0]][padre[1]].board;
-            let newBoard = [
-                [0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0],
-            ];
+            let newBoard = [];
             copyBoard(newBoard, board);
             newBoard[nodos[j][0]][nodos[j][1]] = id_Agent;
-            if (avoidRepeatedState(newBoard, hash)) {
-                tree[level].push(
-                    crearHijo(type, mown, utility, newBoard, nodos[j], padre)
-                );
-            }
+            tree[level].push(
+                crearHijo(type, mown, utility, newBoard, nodos[j], padre)
+            );
         }
     }
 }
-function makeTree(limite, id_Agent, root) {
+function makeTree(board, limite, id_Agent, root) {
     let tree = [[]];
+
     let level = 0;
     tree[level].push(root);
     level++;
     while (level <= limite) {
-        console.log('level', level);
         tree.push([]);
-        let hash = [];
-        makeNodos(tree, level, id_Agent, hash);
-        id_Agent = rival(id_Agent);
-        //console.log(tree);
+        makeNodos(board, tree, level, id_Agent);
         level++;
     }
     return tree;

@@ -18,7 +18,7 @@ class HexAgent extends Agent {
         let size = board.length;
         let available = getHexAt(board, 0);
         let nTurn = size * size - available.length;
-        let limite = 3;
+        let limite = 5;
         let agente = this.getID();
         let raiz = {
             type: 'MAX',
@@ -251,16 +251,8 @@ function heuristica(board, id_Agent) {
  */
 
 function copyBoard(clipboard, board) {
-    let length = board.length;
-    for (let i = 0; i < length; i++) {
-        for (let j = 0; j < length; j++) {
-            if (board[i][j] != 0) {
-                clipboard[i][j] = board[i][j];
-            }
-            //clipboard[i].push(board[i][j]);
-        }
-
-        //clipboard.push(board[i].slice());
+    for (let i = 0; i < board.length; i++) {
+        clipboard.push(board[i].slice());
     }
 }
 
@@ -327,7 +319,7 @@ function fijkstra(board) {
     // false dijkstra
     let available = getHexAt(board, 0);
     let length = available.length;
-    let dijkstra = []; /* 
+    let dijkstra = [
         available.splice(Math.round(Math.random() * (length - 1)), 1)[0],
         available.splice(Math.round(Math.random() * (length - 2)), 1)[0],
         available.splice(Math.round(Math.random() * (length - 3)), 1)[0],
@@ -340,10 +332,10 @@ function fijkstra(board) {
         available.splice(Math.round(Math.random() * (length - 10)), 1)[0],
         available.splice(Math.round(Math.random() * (length - 11)), 1)[0],
         available.splice(Math.round(Math.random() * (length - 12)), 1)[0],
-    ]; */
-    for (let i = 0; i < length; i++) {
+    ];
+    /* for (let i = 0; i < length; i++) {
         dijkstra.push(available[i]);
-    }
+    } */
     return dijkstra;
 }
 
@@ -356,17 +348,10 @@ function makeNodos(tree, level, id_Agent, hash) {
         let padre = [level - 1, i];
         for (let j = 0; j < nodos.length; j++) {
             let board = tree[padre[0]][padre[1]].board;
-            let newBoard = [
-                [0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0],
-            ];
+            let newBoard = [];
             copyBoard(newBoard, board);
             newBoard[nodos[j][0]][nodos[j][1]] = id_Agent;
+
             if (avoidRepeatedState(newBoard, hash)) {
                 tree[level].push(
                     crearHijo(type, mown, utility, newBoard, nodos[j], padre)
@@ -386,7 +371,6 @@ function makeTree(limite, id_Agent, root) {
         let hash = [];
         makeNodos(tree, level, id_Agent, hash);
         id_Agent = rival(id_Agent);
-        //console.log(tree);
         level++;
     }
     return tree;

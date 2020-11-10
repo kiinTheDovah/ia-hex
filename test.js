@@ -1,5 +1,4 @@
-let id_Agent = 2;
-function rival(id_Agent) {
-    return id_Agent == 1 ? 2 : 1;
-}
-console.log(rival(id_Agent));
+let level = 1;
+parseInt('1', 10);
+
+console.log(2 * 4 ** 2);
