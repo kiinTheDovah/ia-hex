@@ -253,14 +253,14 @@ function heuristica(board, id_Agent) {
 function copyBoard(clipboard, board) {
     let length = board.length;
     for (let i = 0; i < length; i++) {
-        for (let j = 0; j < length; j++) {
+        /* for (let j = 0; j < length; j++) {
             if (board[i][j] != 0) {
                 clipboard[i][j] = board[i][j];
             }
             //clipboard[i].push(board[i][j]);
-        }
+        } */
 
-        //clipboard.push(board[i].slice());
+        clipboard.push(board[i].slice());
     }
 }
 
@@ -357,13 +357,13 @@ function makeNodos(tree, level, id_Agent, hash) {
         for (let j = 0; j < nodos.length; j++) {
             let board = tree[padre[0]][padre[1]].board;
             let newBoard = [
+                /* [0, 0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0], */
             ];
             copyBoard(newBoard, board);
             newBoard[nodos[j][0]][nodos[j][1]] = id_Agent;
