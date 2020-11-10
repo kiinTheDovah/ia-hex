@@ -17,7 +17,7 @@ class HexAgent extends Agent {
         let size = board.length;
         let available = getEmptyHex(board);
         let nTurn = size * size - available.length;
-        let limite = 10;
+        let limite = 3;
         let agente = this.getID();
 
         let raiz = {
@@ -46,6 +46,7 @@ class HexAgent extends Agent {
         //Se crea el arbol con todo en infinito
         let nodoRaizMinMax = generarArbol(raiz, this.getID(), limite);
         //Le pasamos el arbol a minimax para que retorne el mejor valor y cambie los infinitos del arbol
+        /*
         let valorMinimax = minimax(
             nodoRaizMinMax,
             limite,
@@ -64,6 +65,10 @@ class HexAgent extends Agent {
         //console.log('arbol generado: ',nodoRaizMinMax);
         console.log('la jugada para ' + agente + ' es: ', jugada);
         //console.log(generarArbol(raiz,this.getID(),limite))
+        */
+        console.log('fijkstra: ',fijkstra(board))
+        console.log(alfa_Beta(nodoRaizMinMax,limite,-infinito,infinito,agente));
+        console.log('arbol generado: ',nodoRaizMinMax);
 
         let move =
             available[Math.round(Math.random() * (available.length - 1))];
@@ -72,8 +77,8 @@ class HexAgent extends Agent {
         var time = (end - start) / 1000;
         console.log('time: ', time, 's');
 
-        //return [Math.floor(move / board.length), move % board.length];
-        return jugada;
+        return [Math.floor(move / board.length), move % board.length];
+        //return jugada;
     }
 }
 
@@ -228,12 +233,16 @@ function agregarHijos(nodoEvaluado, id_Agent) {
     let board = nodoEvaluado.board;
     let id_Rival = rival(id_Agent);
     let available = getEmptyHex(board);
+    /*
     let dijkstra = [
         available[Math.round(Math.random() * (available.length - 1))],
         available[Math.round(Math.random() * (available.length - 1))],
         available[Math.round(Math.random() * (available.length - 1))],
         available[Math.round(Math.random() * (available.length - 1))],
     ];
+    */    
+
+    let dijkstra = fijkstra(board)
 
     for (let i = 0; i < dijkstra.length; i++) {
         let v_x = dijkstra[i][0];
@@ -308,6 +317,42 @@ function minimax(node, limite, minMax, id_Agent) {
 }
 
 /**
+ * Funcion minimax que espera un nodo PAPAPAPAPAPA, osea el papa conoce a los hijos
+ */
+
+function alfa_Beta(node, limite, a, b, id_Agent){
+    if ((limite = 0 || node.children[0] == null)) {
+        //console.log('valor de la hoja: ',heuristica(node.board, id_Agent))
+        return heuristica(node.board, id_Agent);
+    }
+    if (node.type == 'MAX') {
+
+        for (let i = 0; i < node.children.length; i++) {
+            //console.log('evaluando: ',node.children[i])
+            a = Math.max(a,alfa_Beta(node.children[i], limite - 1, a, b, id_Agent))
+            if(b <= a){
+                break;
+            }                    
+        }
+        node.mown = a;    
+        return a;
+
+    }else {
+        for (let i = 0; i < node.children.length; i++) {
+            //console.log('evaluando: ',node.children[i])
+            b = Math.min(b,alfa_Beta(node.children[i], limite - 1, a, b, id_Agent))
+            if(b <= a){
+                break;
+            }                    
+        }
+        node.mown = b;    
+        return b;
+    }        
+}
+    
+
+
+/**
  * Crea un Nodo con la nueva implementacion
  */
 function crearHijo(type, level, mown, utility, board, action) {
@@ -334,4 +379,37 @@ function retornarPosition(nodo, value) {
             return nodo.children[i].action;
         }
     }
+}
+
+function fijkstra(board) {
+    // false dijkstra
+    let available = getEmptyHex(board);
+    let length = available.length;
+    let dijkstra = [
+        available[0],
+        available[1],
+        available[2],
+        available[3],
+    ]; /* 
+        available.splice(Math.round(Math.random() * (length - 1)), 1)[0],
+        available.splice(Math.round(Math.random() * (length - 2)), 1)[0],
+        available.splice(Math.round(Math.random() * (length - 3)), 1)[0],
+        available.splice(Math.round(Math.random() * (length - 4)), 1)[0],
+        available.splice(Math.round(Math.random() * (length - 5)), 1)[0],
+        available.splice(Math.round(Math.random() * (length - 6)), 1)[0],
+        available.splice(Math.round(Math.random() * (length - 7)), 1)[0],
+        available.splice(Math.round(Math.random() * (length - 8)), 1)[0],
+        available.splice(Math.round(Math.random() * (length - 9)), 1)[0],
+        available.splice(Math.round(Math.random() * (length - 10)), 1)[0],
+        available.splice(Math.round(Math.random() * (length - 11)), 1)[0],
+        available.splice(Math.round(Math.random() * (length - 12)), 1)[0],
+    ]; */
+
+    /*
+    for (let i = 0; i < length-37; i++) {
+        dijkstra.push(available[i]);
+    }
+    */
+    
+    return dijkstra;
 }
