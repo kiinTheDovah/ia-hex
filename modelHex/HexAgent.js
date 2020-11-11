@@ -17,7 +17,7 @@ class HexAgent extends Agent {
         let size = board.length;
         let available = getEmptyHex(board);
         let nTurn = size * size - available.length;
-        let limite = 1;
+        let limite = 3;
         let agente = this.getID();
 
         let raiz = {
@@ -33,8 +33,7 @@ class HexAgent extends Agent {
             // First move
             //console.log('el turno del agente: ',this.getID())
             console.log([Math.floor(size / 2), Math.floor(size / 2) - 1]);
-            //return [Math.floor(size / 2), Math.floor(size / 2) - 1];
-            return [2,1];
+            return [Math.floor(size / 2), Math.floor(size / 2) - 1];
         } else if (nTurn == 1) {
             //console.log('el turno del agente: ',this.getID())
             console.log([Math.floor(size / 2), Math.floor(size / 2)]);
@@ -69,6 +68,7 @@ class HexAgent extends Agent {
         */
        let valorAlpha = alfa_Beta(nodoRaizMinMax,limite,-infinito,infinito,agente)
        let jugada = retornarPosition(nodoRaizMinMax, valorAlpha);
+        console.log('Esta jugando: ',agente);
         console.log('valor Alpha: ',valorAlpha);
         console.log('arbol generado: ',nodoRaizMinMax);
         //console.log(alfa_Beta(nodoMinmax,limite,-infinito,infinito,agente));
@@ -170,7 +170,7 @@ function heuristica(board, id_Agent, type) {
         }
     } */
    
-    result = puentes(board,id_Agent);//,type) - puentes(board,rival(id_Agent),type)/2
+    result = puentes(board,id_Agent) - puentes(board,rival(id_Agent))/2;//,type) - puentes(board,rival(id_Agent),type)/2
     return result;
 }
 
@@ -469,5 +469,6 @@ function fijkstra(board) {
        for (let i = 0; i < length-37; i++) {
         dijkstra.push(available[i]);
     } */ 
-    return dijkstra;
+    //return dijkstra;
+    return available;
 }
