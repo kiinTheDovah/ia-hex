@@ -17,7 +17,13 @@ class HexAgent extends Agent {
         let size = board.length;
         let available = getHexAt(board, 0);
         let nTurn = size * size - available.length;
-        let limite = 3;
+        let limite;
+        if (available.length > 20) {
+            limite = 3;
+        } else {
+            limite = 4;
+        }
+        console.log('limite', limite);
         let agente = this.getID();
 
         let raiz = {
@@ -75,7 +81,7 @@ class HexAgent extends Agent {
             agente
         );
         let jugada = retornarPosition(nodoRaizMinMax, valorAlpha);
-        console.log('Arbol generado: ', nodoRaizMinMax);
+        //console.log('Arbol generado: ', nodoRaizMinMax);
         console.log(
             'El valor del mejor camino con alfa-beta en ' +
                 limite +
@@ -198,10 +204,10 @@ function countConnects(board, pid) {
     let rid = rival(pid); //rival id
     let length = board.length;
     let valOf0C = 0;
-    let valOf1C = 2;
-    let valOf2C = 4;
-    let valOf3C = 3;
-    let valOf4plusC = 1;
+    let valOf1C = 1;
+    let valOf2C = 3;
+    let valOf3C = 2.5;
+    let valOf4plusC = -1;
 
     for (let i = 0; i < length; i++) {
         for (let j = 0; j < length; j++) {
@@ -299,11 +305,12 @@ function heuristica(board, id_Agent) {
         }
     } */
 
-    puentesVal = puentes(board, id_Agent) - puentes(board, rival(id_Agent)) / 2; //,type) - puentes(board,rival(id_Agent),type)/2
+    puentesVal =
+        puentes(board, id_Agent) - puentes(board, rival(id_Agent)) * 1.2; //,type) - puentes(board,rival(id_Agent),type)/2
     connectsVal =
         countConnects(board, id_Agent) -
-        countConnects(board, rival(id_Agent)) / 2;
-    result = 4 * puentesVal + connectsVal / 2;
+        (countConnects(board, rival(id_Agent)) * 3) / 4;
+    result = 4 * puentesVal + connectsVal;
     return result;
 }
 
