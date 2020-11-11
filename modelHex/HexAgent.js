@@ -1,5 +1,5 @@
 const Agent = require('ai-agents').Agent;
-let infinito = 9999999999;
+let infinito = Number.MAX_SAFE_INTEGER;
 class HexAgent extends Agent {
     constructor(value) {
         super(value);
@@ -39,7 +39,6 @@ class HexAgent extends Agent {
             console.log([Math.floor(size / 2), Math.floor(size / 2)]);
             return [Math.floor(size / 2), Math.floor(size / 2)];
         }
-
         //console.log(amplitud(root,this.getID(),4));
         //console.log(minimax(nodoMinmax,2,nodoMinmax.type,this.getID()))
         console.log('Pienso, luego existo...');
@@ -47,6 +46,7 @@ class HexAgent extends Agent {
         let nodoRaizMinMax = generarArbol(raiz, agente, limite);
         //Le pasamos el arbol a minimax para que retorne el mejor valor y cambie los infinitos del arbol
         /*
+        //ESTE COMENTARIO ES DEL MINIMAX
         let valorMinimax = minimax(
             nodoRaizMinMax,
             limite,
@@ -62,18 +62,22 @@ class HexAgent extends Agent {
                 ' niveles sin un hash con una heuristica chafa es: ',
             valorMinimax
         );
-        //console.log('arbol generado: ',nodoRaizMinMax);
-        console.log('la jugada para ' + agente + ' es: ', jugada);
+        //console.log('arbol generado: ',nodoRaizMinMax);        
         //console.log(generarArbol(raiz,this.getID(),limite))
         */
-       let valorAlpha = alfa_Beta(nodoRaizMinMax,limite,-infinito,infinito,agente)
-       let jugada = retornarPosition(nodoRaizMinMax, valorAlpha);
-        console.log('Esta jugando: ',agente);
-        console.log('valor Alpha: ',valorAlpha);
-        console.log('arbol generado: ',nodoRaizMinMax);
-        //console.log(alfa_Beta(nodoMinmax,limite,-infinito,infinito,agente));
-        //console.log('arbol generado: ',nodoMinmax);
 
+        //////      ESTE COMENTARIO ES DEL ALFA     ////// 
+        let valorAlpha = alfa_Beta(nodoRaizMinMax,limite,-infinito,infinito,agente)
+        let jugada = retornarPosition(nodoRaizMinMax, valorAlpha);
+        console.log('Arbol generado: ',nodoRaizMinMax);
+        console.log(
+            'El valor del mejor camino con alfa-beta en ' +
+                limite +
+                ' niveles sin un hash es: ',
+                valorAlpha
+        );
+        console.log('La jugada para ' + agente + ' es: ', jugada);
+        //////      ESTE COMENTARIO ES DEL ALFA     ////// 
         let move =
             available[Math.round(Math.random() * (available.length - 1))];
 
@@ -147,9 +151,11 @@ function avoidRepeatedState(node, hash) {
 }
 
 /**
- * XD
+ * Funcion Heuristica donde llamaremos a las demas funciones que en conjunto darán un valor al estado
+ * @param {Matrix} board
+ * @param {int} id_Agent
  */
-function heuristica(board, id_Agent, type) {
+function heuristica(board, id_Agent) {
     let result = 0;
     let size = board.length;
     let centro = Math.round(size / 2);
@@ -182,11 +188,7 @@ function heuristica(board, id_Agent, type) {
     function puentes (board = [], id_Agent){//}, type){
         let valor = 0;
         let peso = 1;
-    
-        /* if(type == 'MIN'){
-            id_Agent = rival(id_Agent);
-        } */
-    
+
         for(let i = 0;i<board.length - 1;i++)
         {
         for(let j = 0;j < board[i].length;j++){
@@ -196,22 +198,19 @@ function heuristica(board, id_Agent, type) {
                         valor = valor + peso;
                         //console.log('Hay un puente a la IZQUIERDA de: ', [i,j], 'es',[i+1,j-2])
                     }
-                }
-                catch(e){}
+                } catch(e){}
                 try{
                     if(board[i+2][j-1]==id_Agent && (board[i+1][j-1]!==rival(id_Agent) && board[i+1][j]!==rival(id_Agent))){
                        valor = valor + peso;
                        //console.log('Hay un puente ABAJO de: ', [i,j], 'es',[i+2,j-1])
                     }
-                }
-                catch(e){}
+                } catch(e){}
                 try {
                     if(board[i+1][j+1]==id_Agent && (board[i+1][j]!==rival(id_Agent) && board[i][j+1]!==rival(id_Agent))){
                         valor = valor + peso;
                         //console.log('Hay un puente a la DERECHA de: ', [i,j],'es',[i+1],',',[j+1])
                     }
-                }
-                catch(e){}
+                } catch(e){}
             }            
         }           
         }    
@@ -219,25 +218,27 @@ function heuristica(board, id_Agent, type) {
         return valor;
         }
 
-/**
- * Retorna un arbol de la manera {raiz [hijo1 [hijo1.1, hijo1.2], hijo2 []]}
- */
+    /**
+     * Retorna un arbol de la manera {raiz [hijo1 [hijo1.1, hijo1.2], hijo2 []]}
+     * @param {Object} nodo
+     * @param {int} id_Agent
+     * @param {int} limite
+     */
 function generarArbol(nodo, id_Agent, limite) {
     let nodoEvaluado = nodo;
     let hash = [];
     /* if (avoidRepeatedState(nodoEvaluado, hash)) {
         agregarHijos(nodoEvaluado, id_Agent);
     } //else console.log('me salte un nodo') */
-
     agregarHijos(nodoEvaluado, id_Agent);
 
     if (nodoEvaluado.children[0] == null) {
         console.log('Ningun camino es viable.');
     }
     generarHojas(nodoEvaluado.children, limite, id_Agent, hash);
-    //console.log(hash.length)
     return nodo;
 }
+
 /**
  * Funcion recursiva que actualiza el array de las hojas del root
  */
@@ -252,7 +253,6 @@ function generarHojas(listOfChildren, limite, id_Agent, hash) {
         for (let i = 0; i < listOfChildren.length; i++) {
             //Esto falla si no llega a tener hijos
             agregarHijos(listOfChildren[i], id_Agent);
-            //console.log('considerate agregada B)')
             if (listOfChildren[i].children[0] == null) {
                 console.log(
                     'Dijkstra() failed: Hay un men sin hijos en el nivel: ',
@@ -270,13 +270,6 @@ function generarHojas(listOfChildren, limite, id_Agent, hash) {
 /**
  * Copia un board en un clipboard (muy original)
  */
-/*
-function copyBoard(clipboard, board) {
-    for (let i = 0; i < board.length; i++) {
-        clipboard.push(board[i].slice());
-    }
-}
-*/
 function copyBoard(clipboard, board,pos,id_Agent) {
     let length = board.length;
     for (let i = 0; i < length; i++) {
@@ -335,7 +328,6 @@ function agregarHijos(nodoEvaluado, id_Agent) {
             }
         }
     }
-
     id_Rival = rival(id_Rival);
 }
 
@@ -346,7 +338,7 @@ function minimax(node, limite, minMax, id_Agent) {
     let value = 0;
     if ((limite = 0 || node.children[0] == null)) {
         //console.log('valor de la hoja: ',heuristica(node.board, id_Agent))
-        return heuristica(node.board, id_Agent, node.type);
+        return heuristica(node.board, id_Agent);
     }
     if (minMax == 'MAX') {
         value = -infinito;
@@ -363,7 +355,6 @@ function minimax(node, limite, minMax, id_Agent) {
         value = infinito;
         for (let i = 0; i < node.children.length; i++) {
             //console.log('evaluando: ',node.children[i])
-
             value = Math.min(
                 value,
                 minimax(node.children[i], limite - 1, 'MAX', id_Agent)
@@ -388,18 +379,15 @@ function alfa_Beta(node, limite, a, b, id_Agent){
         return utilidad;
     }
     if (node.type == 'MAX') {
-
         for (let i = 0; i < node.children.length; i++) {
             //console.log('evaluando: ',node.children[i])
             a = Math.max(a,alfa_Beta(node.children[i], limite - 1, a, b, id_Agent))
             node.utility = a;
             if(b <= a){
                 break;
-            } 
-            
+            }            
         }        
         return a;
-
     }else {
         for (let i = 0; i < node.children.length; i++) {
             //console.log('evaluando: ',node.children[i])
@@ -433,7 +421,6 @@ function crearHijo(type, level, utility, board, action) {
  * Dado el nodo padre, busca en sus primeros hijos cual es el que coicide con el valor maximo y retorna su accion
  * 
  */
-
 function retornarPosition(nodo, value) {
     for (let i = 0; i < nodo.children.length; i++) {
         if (nodo.children[i].utility == value) {
