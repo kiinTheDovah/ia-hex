@@ -34,7 +34,14 @@ class HexAgent extends Agent {
             board: board,
             action: null,
         };
-
+        /* if (nTurn % 2 == 0) { //let the hooman play
+            // == 0 primer turno // == 1 segundo turno
+            let row = prompt('row: ', '0');
+            let column = prompt('column: ', '0');
+            let play = [row, column];
+            console.log('hooman: ', play);
+            return play;
+        } */
         if (nTurn == 0) {
             // First move
             //console.log('el turno del agente: ',this.getID())
@@ -204,7 +211,7 @@ function countConnects(board, pid) {
     let rid = rival(pid); //rival id
     let length = board.length;
     let valOf0C = 0;
-    let valOf1C = 1;
+    let valOf1C = 0.3;
     let valOf2C = 3;
     let valOf3C = 2.5;
     let valOf4plusC = -1;
@@ -221,6 +228,12 @@ function countConnects(board, pid) {
                         cells += valOf1C;
                         break;
                     case 2:
+                        if (
+                            around[pid][0] + 1 == around[pid][1] ||
+                            around[pid][0] + 5 == around[pid][1]
+                        ) {
+                            break;
+                        }
                         cells += valOf2C;
                         break;
                     case 3:
@@ -288,6 +301,9 @@ function heuristica(board, id_Agent) {
     let centro = Math.round(size / 2);
     let puentesVal;
     let connectsVal;
+    let valueBo;
+    let winwin;
+    let rid = rival(id_Agent); //rival id
 
     /* for (let k = 0; k < size; k++) {
         for (let j = 0; j < size; j++) {
@@ -305,12 +321,18 @@ function heuristica(board, id_Agent) {
         }
     } */
 
-    puentesVal =
-        puentes(board, id_Agent) - puentes(board, rival(id_Agent)) * 1.2; //,type) - puentes(board,rival(id_Agent),type)/2
+    puentesVal = puentes(board, id_Agent) - puentes(board, rid) / 3;
     connectsVal =
-        countConnects(board, id_Agent) -
-        (countConnects(board, rival(id_Agent)) * 3) / 4;
-    result = 4 * puentesVal + connectsVal;
+        countConnects(board, id_Agent) - (countConnects(board, rid) * 3) / 4;
+    valueBo =
+        valueBoard(board, id_Agent) - valueBoard(board, rival(id_Agent)) / 2;
+    winwin = Winner(board, id_Agent) - Winner(board, rival(id_Agent)) / 2;
+
+    result = 2 * puentesVal + connectsVal + valueBo;
+    if (winwin == 500) {
+        let available = getHexAt(board, 0);
+        result += winwin + available.length * 1000;
+    }
     return result;
 }
 
@@ -323,37 +345,35 @@ function puentes(board = [], id_Agent) {
     //}, type){
     let valor = 0;
     let peso = 1;
-
-    for (let i = 0; i < board.length - 1; i++) {
-        for (let j = 0; j < board[i].length; j++) {
-            if (
-                board[i][j] == id_Agent &&
-                (board[i][j - 1] !== rival(id_Agent) &&
-                    board[i + 1][j - 1] !== rival(id_Agent))
-            ) {
+    let length = board.length;
+    let rid = rival(id_Agent); //rival id
+    for (let i = 0; i < length - 1; i++) {
+        for (let j = 0; j < length; j++) {
+            if (board[i][j] == id_Agent) {
                 try {
-                    if (board[i + 1][j - 2] == id_Agent) {
-                        valor = valor + peso;
+                    if (
+                        // Hay puente ABAJO a la IZQUIERDA? (equivalente a ARRIBA a la DERECHA)
+                        board[i][j - 1] == 0 && //la izquierda está vacía?
+                        board[i + 1][j - 1] == 0 && //abajo a la izquierda está vacía?
+                        board[i + 1][j - 2] == id_Agent // existe puente abajo a la izquierda?
+                    ) {
+                        valor += peso;
                         //console.log('Hay un puente a la IZQUIERDA de: ', [i,j], 'es',[i+1,j-2])
-                    }
-                } catch (e) {}
-                try {
-                    if (
-                        board[i + 2][j - 1] == id_Agent &&
-                        (board[i + 1][j - 1] !== rival(id_Agent) &&
-                            board[i + 1][j] !== rival(id_Agent))
+                    } else if (
+                        // Hay puente ABAJO? (equivalente a ARRIBA)
+                        board[i + 1][j] == 0 && // abajo está vacío?
+                        board[i + 1][j - 1] == 0 && //abajo a la izquierda está vacío?
+                        board[i + 2][j - 1] == id_Agent //hay puente abajo?
                     ) {
-                        valor = valor + peso;
+                        valor += peso;
                         //console.log('Hay un puente ABAJO de: ', [i,j], 'es',[i+2,j-1])
-                    }
-                } catch (e) {}
-                try {
-                    if (
-                        board[i + 1][j + 1] == id_Agent &&
-                        (board[i + 1][j] !== rival(id_Agent) &&
-                            board[i][j + 1] !== rival(id_Agent))
+                    } else if (
+                        // Hay puente ABAJO a la DERECHA? (equivalente a ARRIBA a la IZQUIERDA)
+                        board[i + 1][j] == 0 && //abajo está vacío?
+                        board[i][j + 1] == 0 && //derecha está vacío?
+                        board[i + 1][j + 1] == id_Agent //hay puente abajo a la derecha?
                     ) {
-                        valor = valor + peso;
+                        valor += peso;
                         //console.log('Hay un puente a la DERECHA de: ', [i,j],'es',[i+1],',',[j+1])
                     }
                 } catch (e) {}
@@ -442,32 +462,32 @@ function agregarHijos(nodoEvaluado, id_Agent) {
     let dijkstra = fijkstra(board);
 
     for (let i = 0; i < dijkstra.length; i++) {
-        let v_x = dijkstra[i][0];
-        let v_y = dijkstra[i][1];
+        let row = dijkstra[i][0];
+        let col = dijkstra[i][1];
 
-        if (board[v_x][v_y] == 0) {
+        if (board[row][col] == 0 && Winner(board, id_Agent) == 0) {
             let newBoard = [];
 
             if (nodoEvaluado.type == 'MAX') {
-                copyBoard(newBoard, board, [v_x, v_y], id_Agent);
+                copyBoard(newBoard, board, [row, col], id_Agent);
                 nodoEvaluado.children.push(
                     crearHijo(
                         'MIN',
                         nodoEvaluado.level + 1,
                         -nodoEvaluado.utility,
                         newBoard,
-                        [v_x, v_y]
+                        [row, col]
                     )
                 );
             } else {
-                copyBoard(newBoard, board, [v_x, v_y], id_Rival);
+                copyBoard(newBoard, board, [row, col], id_Rival);
                 nodoEvaluado.children.push(
                     crearHijo(
                         'MAX',
                         nodoEvaluado.level + 1,
                         -nodoEvaluado.utility,
                         newBoard,
-                        [v_x, v_y]
+                        [row, col]
                     )
                 );
             }
@@ -590,7 +610,7 @@ function fijkstra(board) {
     /* 
         available.splice(Math.round(Math.random() * (length - 1)), 1)[0],
         available.splice(Math.round(Math.random() * (length - 2)), 1)[0],
-       for (let i = 0; i < length-37; i++) {
+        for (let i = 0; i < length-37; i++) {
         dijkstra.push(available[i]);
     } */
     /* let dijkstra = [
@@ -607,4 +627,209 @@ function fijkstra(board) {
         available[10],
         available[11],
     ];  */ return available;
+}
+
+/**
+ * Returna el valor de una jugada en funcion de las posiciones de las fichas
+ * @param {Matrix} board
+ * @param {Number} id_Agent
+ */
+function valueBoard(board = [], id_Agent) {
+    let valor = 0;
+    switch (id_Agent) {
+        case '2':
+            let valor_Board_1 = [
+                //  0 1 2 3 4 5 6
+                [4, 3, 3, 3, 3, 3, 4], // 0
+                [2, 4, 3, 4, 3, 4, 2], // 1
+                [2, 4, 5, 5, 5, 4, 2], // 2
+                [2, 4, 5, 6, 5, 4, 2], // 3
+                [2, 4, 5, 5, 5, 4, 2], // 4
+                [2, 4, 3, 4, 3, 4, 2], // 5
+                [4, 3, 3, 3, 3, 3, 4],
+            ]; // 6
+            for (let i = 0; i < board.length - 1; i++) {
+                for (let j = 0; j < board[i].length; j++) {
+                    if (board[i][j] == id_Agent) {
+                        valor = valor + valor_Board_1[i][j];
+                        //console.log('leyendo: ', [i,j])
+                    }
+                }
+            }
+            break;
+
+        case '1':
+            let valor_Board_2 = [
+                //  0 1 2 3 4 5 6
+                [4, 2, 2, 2, 2, 2, 4], // 0
+                [3, 4, 4, 4, 4, 4, 3], // 1
+                [3, 3, 5, 5, 5, 3, 3], // 2
+                [3, 4, 5, 6, 5, 4, 3], // 3
+                [3, 3, 5, 5, 5, 3, 3], // 4
+                [3, 4, 4, 4, 4, 4, 3], // 5
+                [4, 2, 2, 2, 2, 2, 4],
+            ]; // 6
+            for (let i = 0; i < board.length - 1; i++) {
+                for (let j = 0; j < board[i].length; j++) {
+                    if (board[i][j] == id_Agent) {
+                        valor = valor + valor_Board_2[i][j];
+                        //console.log('leyendo: ', [i,j])
+                    }
+                }
+            }
+            break;
+    }
+    //console.log('valor de la jugada: ', valor)
+    return valor;
+}
+/**
+ * Returna el valor de una jugada en funcion de si gano o perdio
+ * @param {Matrix} board
+ * @param {int} id_Agent
+ */
+function Winner(board = [], id_Agent) {
+    let hash = [];
+    let valor = 0;
+    let peso = 500;
+    switch (id_Agent) {
+        case '1':
+            for (let i = 0; i < board.length - 1; i++) {
+                if (board[i][0] == id_Agent) {
+                    hash.push(i * 10 + 0);
+                    if (contarCamino(board, [i, 0], hash, id_Agent)) {
+                        valor = peso;
+                    }
+                    //console.log(hash)
+                }
+            }
+            break;
+
+        case '2':
+            for (let i = 0; i < board.length - 1; i++) {
+                if (board[0][i] == id_Agent) {
+                    hash.push(0 * 10 + i);
+                    if (contarCamino(board, [0, i], hash, id_Agent)) {
+                        valor = peso;
+                    }
+                    //console.log(hash)
+                }
+            }
+            break;
+    }
+    //console.log('valor de la jugada: ', valor)
+    return valor;
+}
+
+/**
+ * Retorna un booleano true si cruza el tablero de lado a lado dependiendo del id_Agent
+ * @param {Matrix} board
+ * @param {Array} pos
+ * @param {Array} hash
+ * @param {int} id_Agent
+ */
+function contarCamino(board, pos, hash = [], id_Agent) {
+    let around = checkAround(board, pos);
+    let bool = false;
+    let pos_id = 0;
+    let index_id = 0;
+
+    //Esto cambia la manera de buscar en el array checkAround dependiendo del agente
+    if (id_Agent == '1') {
+        pos_id = 1;
+        index_id = 1;
+    } else {
+        pos_id = 0;
+        index_id = 2;
+    }
+
+    //En sintesis esto busca si hay algun camino por alguna parte y si lo encuentra retorna true
+    if (pos[pos_id] == board.length - 1) {
+        //console.log('llegué al final')
+        bool = true;
+    }
+    for (let i = 0; i < around[index_id].length && bool != true; i++) {
+        switch (around[index_id][i]) {
+            case 0: //UP
+                if (!hash.includes((pos[0] - 1) * 10 + pos[1])) {
+                    hash.push((pos[0] - 1) * 10 + pos[1]);
+                    bool =
+                        bool ||
+                        contarCamino(
+                            board,
+                            [pos[0] - 1, pos[1]],
+                            hash,
+                            id_Agent
+                        );
+                }
+                break;
+            case 1: //UP-RIGHT
+                if (!hash.includes((pos[0] - 1) * 10 + (pos[1] + 1))) {
+                    hash.push((pos[0] - 1) * 10 + (pos[1] + 1));
+                    bool =
+                        bool ||
+                        contarCamino(
+                            board,
+                            [pos[0] - 1, pos[1] + 1],
+                            hash,
+                            id_Agent
+                        );
+                }
+                break;
+            case 2: //RIGHT
+                if (!hash.includes(pos[0] * 10 + (pos[1] + 1))) {
+                    hash.push(pos[0] * 10 + (pos[1] + 1));
+                    bool =
+                        bool ||
+                        contarCamino(
+                            board,
+                            [pos[0], pos[1] + 1],
+                            hash,
+                            id_Agent
+                        );
+                }
+                break;
+            case 3: //DOWN
+                if (!hash.includes((pos[0] + 1) * 10 + pos[1])) {
+                    hash.push((pos[0] + 1) * 10 + pos[1]);
+                    bool =
+                        bool ||
+                        contarCamino(
+                            board,
+                            [pos[0] + 1, pos[1]],
+                            hash,
+                            id_Agent
+                        );
+                }
+                break;
+            case 4: //DOWN-LEFT
+                if (!hash.includes((pos[0] + 1) * 10 + (pos[1] - 1))) {
+                    hash.push((pos[0] + 1) * 10 + (pos[1] - 1));
+                    bool =
+                        bool ||
+                        contarCamino(
+                            board,
+                            [pos[0] + 1, pos[1] - 1],
+                            hash,
+                            id_Agent
+                        );
+                }
+                break;
+            case 5: //LEFT
+                if (!hash.includes(pos[0] * 10 + (pos[1] - 1))) {
+                    hash.push(pos[0] * 10 + (pos[1] - 1));
+                    bool =
+                        bool ||
+                        contarCamino(
+                            board,
+                            [pos[0], pos[1] - 1],
+                            hash,
+                            id_Agent
+                        );
+                }
+                break;
+            default:
+                break;
+        }
+    }
+    return bool;
 }
