@@ -211,7 +211,7 @@ function countConnects(board, pid) {
     let rid = rival(pid); //rival id
     let length = board.length;
     let valOf0C = 0;
-    let valOf1C = 0.3;
+    let valOf1C = 0.8;
     let valOf2C = 3;
     let valOf3C = 2.5;
     let valOf4plusC = -1;
@@ -328,7 +328,7 @@ function heuristica(board, id_Agent) {
         valueBoard(board, id_Agent) - valueBoard(board, rival(id_Agent)) / 2;
     winwin = Winner(board, id_Agent) - Winner(board, rival(id_Agent)) / 2;
 
-    result = 2 * puentesVal + connectsVal + valueBo;
+    result = 4 * puentesVal + connectsVal; //+ valueBo;
     if (winwin == 500) {
         let available = getHexAt(board, 0);
         result += winwin + available.length * 1000;
