@@ -15,7 +15,7 @@ class HexAgent extends Agent {
         var start = new Date().getTime();
         let board = this.perception;
         let size = board.length;
-        let available = getEmptyHex(board);
+        let available = getHexAt(board, 0);
         let nTurn = size * size - available.length;
         let limite = 3;
         let agente = this.getID();
@@ -99,22 +99,137 @@ class HexAgent extends Agent {
 module.exports = HexAgent;
 
 /**
- * Return an array containing the id of the empty hex in the board
- * id = row * size + col;
- * @param {Matrix} board
+ * Return an array containing the id of the empty hex (0)
+ * or the player id (1 or 2) in the board
+ * @param {Array} board
+ * @param {Number} pid
  */
-function getEmptyHex(board) {
+function getHexAt(board, pid) {
+    let id = 0;
+    switch (pid) {
+        case 1:
+            id = 1;
+            break;
+        case 2:
+            id = 2;
+            break;
+        default:
+            break;
+    }
     let result = [];
     let size = board.length;
     for (let k = 0; k < size; k++) {
         for (let j = 0; j < size; j++) {
-            if (board[k][j] === 0) {
+            if (board[k][j] == pid) {
                 //result.push(k * size + j);
                 result.push([k, j]);
             }
         }
     }
     return result;
+}
+
+/**
+ * Returns 3 arrays the first contain the relative position of the empty cells around
+ * The second array contains the relative position of the cells occupied by player 1
+ * And third array contains the relative position of the cells occupied by player 2
+ * Relative Positions:
+ * Up          : 0
+ * Up & Right  : 1
+ * Right       : 2
+ * Down        : 3
+ * Down & Left : 4
+ * Left        : 5
+ * @param {Array} board
+ * @param {Array} pos
+ */
+function checkAround(board, pos) {
+    let around = [[], [], []];
+    let up = pos[0] == 0;
+    let down = pos[0] == board.length - 1;
+    let left = pos[1] == 0;
+    let right = pos[1] == board.length - 1;
+
+    for (let i = 0; i < 6; i++) {
+        switch (i) {
+            case 0: //up
+                if (!up) {
+                    around[board[pos[0] - 1][pos[1]]].push(i);
+                }
+                break;
+            case 1: //up & right
+                if (!up && !right) {
+                    around[board[pos[0] - 1][pos[1] + 1]].push(i);
+                }
+                break;
+            case 2: //right
+                if (!right) {
+                    around[board[pos[0]][pos[1] + 1]].push(i);
+                }
+                break;
+            case 3: //down
+                if (!down) {
+                    around[board[pos[0] + 1][pos[1]]].push(i);
+                }
+                break;
+            case 4: // down & left
+                if (!down && !left) {
+                    around[board[pos[0] + 1][pos[1] - 1]].push(i);
+                }
+                break;
+            case 5: //left
+                if (!left) {
+                    around[board[pos[0]][pos[1] - 1]].push(i);
+                }
+                break;
+        }
+    }
+    return around;
+}
+/**
+ * Rank the connections for a given player in a board.
+ * having a piece that connects with two others rank the highest, then having a triple connection
+ * @param {Array} board
+ * @param {Number} pid //player id
+ */
+function countConnects(board, pid) {
+    let cells = 0;
+    let playerChips = getHexAt(board, 1);
+    let rid = rival(pid); //rival id
+    let length = board.length;
+    let valOf0C = 0;
+    let valOf1C = 2;
+    let valOf2C = 4;
+    let valOf3C = 3;
+    let valOf4plusC = 1;
+
+    for (let i = 0; i < length; i++) {
+        for (let j = 0; j < length; j++) {
+            if (board[i][j] == pid) {
+                let around = checkAround(board, [i, j]);
+                switch (around[pid].length) {
+                    case 0:
+                        cells += valOf0C;
+                        break;
+                    case 1:
+                        cells += valOf1C;
+                        break;
+                    case 2:
+                        cells += valOf2C;
+                        break;
+                    case 3:
+                        cells += valOf3C;
+                        break;
+
+                    default:
+                        cells += valOf4plusC;
+                        // 0 connections or 3 or more
+                        break;
+                }
+            }
+        }
+    }
+    return cells;
 }
 
 /**
@@ -165,6 +280,8 @@ function heuristica(board, id_Agent) {
     let result = 0;
     let size = board.length;
     let centro = Math.round(size / 2);
+    let puentesVal;
+    let connectsVal;
 
     /* for (let k = 0; k < size; k++) {
         for (let j = 0; j < size; j++) {
@@ -182,7 +299,11 @@ function heuristica(board, id_Agent) {
         }
     } */
 
-    result = puentes(board, id_Agent) - puentes(board, rival(id_Agent)) / 2; //,type) - puentes(board,rival(id_Agent),type)/2
+    puentesVal = puentes(board, id_Agent) - puentes(board, rival(id_Agent)) / 2; //,type) - puentes(board,rival(id_Agent),type)/2
+    connectsVal =
+        countConnects(board, id_Agent) -
+        countConnects(board, rival(id_Agent)) / 2;
+    result = 4 * puentesVal + connectsVal / 2;
     return result;
 }
 
@@ -457,9 +578,15 @@ function retornarPosition(nodo, value) {
  */
 function fijkstra(board) {
     // false dijkstra
-    let available = getEmptyHex(board);
-    let length = available.length;
-    let dijkstra = [
+    let available = getHexAt(board, 0);
+    let length = available.length; //return dijkstra;
+    /* 
+        available.splice(Math.round(Math.random() * (length - 1)), 1)[0],
+        available.splice(Math.round(Math.random() * (length - 2)), 1)[0],
+       for (let i = 0; i < length-37; i++) {
+        dijkstra.push(available[i]);
+    } */
+    /* let dijkstra = [
         available[3],
         available[0],
         available[2],
@@ -472,12 +599,5 @@ function fijkstra(board) {
         available[8],
         available[10],
         available[11],
-    ]; /* 
-        available.splice(Math.round(Math.random() * (length - 1)), 1)[0],
-        available.splice(Math.round(Math.random() * (length - 2)), 1)[0],
-       for (let i = 0; i < length-37; i++) {
-        dijkstra.push(available[i]);
-    } */
-    //return dijkstra;
-    return available;
+    ];  */ return available;
 }
