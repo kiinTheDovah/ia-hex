@@ -66,18 +66,24 @@ class HexAgent extends Agent {
         //console.log(generarArbol(raiz,this.getID(),limite))
         */
 
-        //////      ESTE COMENTARIO ES DEL ALFA     ////// 
-        let valorAlpha = alfa_Beta(nodoRaizMinMax,limite,-infinito,infinito,agente)
+        //////      ESTE COMENTARIO ES DEL ALFA     //////
+        let valorAlpha = alfa_Beta(
+            nodoRaizMinMax,
+            limite,
+            -infinito,
+            infinito,
+            agente
+        );
         let jugada = retornarPosition(nodoRaizMinMax, valorAlpha);
-        console.log('Arbol generado: ',nodoRaizMinMax);
+        console.log('Arbol generado: ', nodoRaizMinMax);
         console.log(
             'El valor del mejor camino con alfa-beta en ' +
                 limite +
                 ' niveles sin un hash es: ',
-                valorAlpha
+            valorAlpha
         );
         console.log('La jugada para ' + agente + ' es: ', jugada);
-        //////      ESTE COMENTARIO ES DEL ALFA     ////// 
+        //////      ESTE COMENTARIO ES DEL ALFA     //////
         let move =
             available[Math.round(Math.random() * (available.length - 1))];
 
@@ -159,7 +165,7 @@ function heuristica(board, id_Agent) {
     let result = 0;
     let size = board.length;
     let centro = Math.round(size / 2);
-    
+
     /* for (let k = 0; k < size; k++) {
         for (let j = 0; j < size; j++) {
             if (board[k][j] == 2 || board[k][j] == 1){//parseInt(id_Agent, 10)) {
@@ -175,55 +181,67 @@ function heuristica(board, id_Agent) {
             }
         }
     } */
-   
-    result = puentes(board,id_Agent) - puentes(board,rival(id_Agent))/2;//,type) - puentes(board,rival(id_Agent),type)/2
+
+    result = puentes(board, id_Agent) - puentes(board, rival(id_Agent)) / 2; //,type) - puentes(board,rival(id_Agent),type)/2
     return result;
 }
 
 /**
-     * Cuenta la cantidad de puentes en un board.
-     * @param {Matrix} board
-     * @param {int} id_Agent
-     */
-    function puentes (board = [], id_Agent){//}, type){
-        let valor = 0;
-        let peso = 1;
+ * Cuenta la cantidad de puentes en un board.
+ * @param {Matrix} board
+ * @param {int} id_Agent
+ */
+function puentes(board = [], id_Agent) {
+    //}, type){
+    let valor = 0;
+    let peso = 1;
 
-        for(let i = 0;i<board.length - 1;i++)
-        {
-        for(let j = 0;j < board[i].length;j++){
-            if(board[i][j]==id_Agent && (board[i][j-1]!==rival(id_Agent) && board[i+1][j-1]!==rival(id_Agent))){        
+    for (let i = 0; i < board.length - 1; i++) {
+        for (let j = 0; j < board[i].length; j++) {
+            if (
+                board[i][j] == id_Agent &&
+                (board[i][j - 1] !== rival(id_Agent) &&
+                    board[i + 1][j - 1] !== rival(id_Agent))
+            ) {
                 try {
-                    if(board[i+1][j-2]==id_Agent){
+                    if (board[i + 1][j - 2] == id_Agent) {
                         valor = valor + peso;
                         //console.log('Hay un puente a la IZQUIERDA de: ', [i,j], 'es',[i+1,j-2])
                     }
-                } catch(e){}
-                try{
-                    if(board[i+2][j-1]==id_Agent && (board[i+1][j-1]!==rival(id_Agent) && board[i+1][j]!==rival(id_Agent))){
-                       valor = valor + peso;
-                       //console.log('Hay un puente ABAJO de: ', [i,j], 'es',[i+2,j-1])
-                    }
-                } catch(e){}
+                } catch (e) {}
                 try {
-                    if(board[i+1][j+1]==id_Agent && (board[i+1][j]!==rival(id_Agent) && board[i][j+1]!==rival(id_Agent))){
+                    if (
+                        board[i + 2][j - 1] == id_Agent &&
+                        (board[i + 1][j - 1] !== rival(id_Agent) &&
+                            board[i + 1][j] !== rival(id_Agent))
+                    ) {
+                        valor = valor + peso;
+                        //console.log('Hay un puente ABAJO de: ', [i,j], 'es',[i+2,j-1])
+                    }
+                } catch (e) {}
+                try {
+                    if (
+                        board[i + 1][j + 1] == id_Agent &&
+                        (board[i + 1][j] !== rival(id_Agent) &&
+                            board[i][j + 1] !== rival(id_Agent))
+                    ) {
                         valor = valor + peso;
                         //console.log('Hay un puente a la DERECHA de: ', [i,j],'es',[i+1],',',[j+1])
                     }
-                } catch(e){}
-            }            
-        }           
-        }    
-        //console.log('numero de puentes: ', valor)
-        return valor;
+                } catch (e) {}
+            }
         }
+    }
+    //console.log('numero de puentes: ', valor)
+    return valor;
+}
 
-    /**
-     * Retorna un arbol de la manera {raiz [hijo1 [hijo1.1, hijo1.2], hijo2 []]}
-     * @param {Object} nodo
-     * @param {int} id_Agent
-     * @param {int} limite
-     */
+/**
+ * Retorna un arbol de la manera {raiz [hijo1 [hijo1.1, hijo1.2], hijo2 []]}
+ * @param {Object} nodo
+ * @param {int} id_Agent
+ * @param {int} limite
+ */
 function generarArbol(nodo, id_Agent, limite) {
     let nodoEvaluado = nodo;
     let hash = [];
@@ -270,7 +288,7 @@ function generarHojas(listOfChildren, limite, id_Agent, hash) {
 /**
  * Copia un board en un clipboard (muy original)
  */
-function copyBoard(clipboard, board,pos,id_Agent) {
+function copyBoard(clipboard, board, pos, id_Agent) {
     let length = board.length;
     for (let i = 0; i < length; i++) {
         clipboard.push([]);
@@ -278,10 +296,9 @@ function copyBoard(clipboard, board,pos,id_Agent) {
             /* if (board[i][j] != 0) {
                 clipboard[i][j] = board[i][j];
             } */
-            if(i == pos[0] && j == pos[1]){
+            if (i == pos[0] && j == pos[1]) {
                 clipboard[i].push(id_Agent);
-            }else clipboard[i].push(board[i][j]);
-            
+            } else clipboard[i].push(board[i][j]);
         }
         //clipboard.push(board[i].slice());
     }
@@ -294,7 +311,7 @@ function agregarHijos(nodoEvaluado, id_Agent) {
     let board = nodoEvaluado.board;
     let id_Rival = rival(id_Agent);
 
-    let dijkstra = fijkstra(board)
+    let dijkstra = fijkstra(board);
 
     for (let i = 0; i < dijkstra.length; i++) {
         let v_x = dijkstra[i][0];
@@ -304,7 +321,7 @@ function agregarHijos(nodoEvaluado, id_Agent) {
             let newBoard = [];
 
             if (nodoEvaluado.type == 'MAX') {
-                copyBoard(newBoard, board,[v_x,v_y],id_Agent);
+                copyBoard(newBoard, board, [v_x, v_y], id_Agent);
                 nodoEvaluado.children.push(
                     crearHijo(
                         'MIN',
@@ -315,7 +332,7 @@ function agregarHijos(nodoEvaluado, id_Agent) {
                     )
                 );
             } else {
-                copyBoard(newBoard, board,[v_x,v_y],id_Rival);
+                copyBoard(newBoard, board, [v_x, v_y], id_Rival);
                 nodoEvaluado.children.push(
                     crearHijo(
                         'MAX',
@@ -369,38 +386,43 @@ function minimax(node, limite, minMax, id_Agent) {
  * Funcion alfa_Beta que espera un nodo PAPAPAPAPAPA, osea el papa conoce a los hijos
  */
 
-function alfa_Beta(node, limite, a, b, id_Agent){
+function alfa_Beta(node, limite, a, b, id_Agent) {
     if ((limite = 0 || node.children[0] == null)) {
         //console.log('valor de la hoja: ',heuristica(node.board, id_Agent))
         //console.log('Heuristica: ',node.board)
         //return node.board;
-        let utilidad = heuristica(node.board, id_Agent);//, node.type);
+        let utilidad = heuristica(node.board, id_Agent); //, node.type);
         node.utility = utilidad;
         return utilidad;
     }
     if (node.type == 'MAX') {
         for (let i = 0; i < node.children.length; i++) {
             //console.log('evaluando: ',node.children[i])
-            a = Math.max(a,alfa_Beta(node.children[i], limite - 1, a, b, id_Agent))
+            a = Math.max(
+                a,
+                alfa_Beta(node.children[i], limite - 1, a, b, id_Agent)
+            );
             node.utility = a;
-            if(b <= a){
+            if (b <= a) {
                 break;
-            }            
-        }        
+            }
+        }
         return a;
-    }else {
+    } else {
         for (let i = 0; i < node.children.length; i++) {
             //console.log('evaluando: ',node.children[i])
-            b = Math.min(b,alfa_Beta(node.children[i], limite - 1, a, b, id_Agent))
-            node.utility = b;  
-            if(b <= a){
+            b = Math.min(
+                b,
+                alfa_Beta(node.children[i], limite - 1, a, b, id_Agent)
+            );
+            node.utility = b;
+            if (b <= a) {
                 break;
-            }                              
-        }            
+            }
+        }
         return b;
-    }        
-}  
-
+    }
+}
 
 /**
  * Crea un Nodo con la nueva implementacion
@@ -419,19 +441,19 @@ function crearHijo(type, level, utility, board, action) {
 
 /**
  * Dado el nodo padre, busca en sus primeros hijos cual es el que coicide con el valor maximo y retorna su accion
- * 
+ *
  */
 function retornarPosition(nodo, value) {
     for (let i = 0; i < nodo.children.length; i++) {
         if (nodo.children[i].utility == value) {
             return nodo.children[i].action;
-        }       
+        }
     }
 }
 
 /**
  * Devuelve las primeras 4 posiciones disponibles
- * 
+ *
  */
 function fijkstra(board) {
     // false dijkstra
@@ -449,13 +471,13 @@ function fijkstra(board) {
         available[9],
         available[8],
         available[10],
-        available[11]
+        available[11],
     ]; /* 
         available.splice(Math.round(Math.random() * (length - 1)), 1)[0],
         available.splice(Math.round(Math.random() * (length - 2)), 1)[0],
        for (let i = 0; i < length-37; i++) {
         dijkstra.push(available[i]);
-    } */ 
+    } */
     //return dijkstra;
     return available;
 }
