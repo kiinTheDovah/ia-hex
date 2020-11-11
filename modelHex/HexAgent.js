@@ -176,7 +176,8 @@ function heuristica(board, id_Agent) {
         }
     } */
    
-    result = puentes(board,id_Agent) - puentes(board,rival(id_Agent))/2;//,type) - puentes(board,rival(id_Agent),type)/2
+    result = puentes(board,id_Agent) - puentes(board,rival(id_Agent))/2 +
+             valueBoard(board,id_Agent) - valueBoard(board,rival(id_Agent))/2;//,type) - puentes(board,rival(id_Agent),type)/2
     return result;
 }
 
@@ -187,7 +188,7 @@ function heuristica(board, id_Agent) {
      */
     function puentes (board = [], id_Agent){//}, type){
         let valor = 0;
-        let peso = 1;
+        let peso = 3;
 
         for(let i = 0;i<board.length - 1;i++)
         {
@@ -217,6 +218,59 @@ function heuristica(board, id_Agent) {
         //console.log('numero de puentes: ', valor)
         return valor;
         }
+    
+    /**
+     * Returna el valor de una jugada en funcion de las posiciones de las fichas
+     * @param {Matrix} board
+     * @param {int} id_Agent
+     */
+    function valueBoard (board = [], id_Agent){
+        let valor = 0;               
+            switch (id_Agent) {
+                case '1':
+                    let valor_Board_1 = [
+                        //  0 1 2 3 4 5 6
+                            [4,3,3,3,3,3,4], // 0
+                             [2,4,3,4,3,4,2], // 1
+                              [2,4,5,5,5,4,2], // 2
+                               [2,4,5,6,5,4,2], // 3
+                                [2,4,5,5,5,4,2], // 4
+                                 [2,4,3,4,3,4,2], // 5
+                                  [4,3,3,3,3,3,4]] // 6
+                    for(let i = 0;i<board.length - 1;i++){
+                        for(let j = 0;j < board[i].length;j++){
+                            if(board[i][j]==id_Agent){
+                                valor = valor + valor_Board_1[i][j];
+                                //console.log('leyendo: ', [i,j])
+                            }            
+                        }        
+                    }   
+                    break;
+    
+                case '2':
+                    let valor_Board_2 = [
+                        //  0 1 2 3 4 5 6
+                            [4,2,2,2,2,2,4], // 0
+                             [3,4,4,4,4,4,3], // 1
+                              [3,3,5,5,5,3,3], // 2
+                               [3,4,5,6,5,4,3], // 3
+                                [3,3,5,5,5,3,3], // 4
+                                 [3,4,4,4,4,4,3], // 5
+                                  [4,2,2,2,2,2,4]] // 6
+                    for(let i = 0;i<board.length - 1;i++){
+                        for(let j = 0;j < board[i].length;j++){
+                            if(board[i][j]==id_Agent){
+                                valor = valor + valor_Board_2[i][j];
+                                //console.log('leyendo: ', [i,j])
+                            }            
+                        }        
+                    }                
+                    break;
+            }
+        
+        //console.log('valor de la jugada: ', valor)
+        return valor;
+    }
 
     /**
      * Retorna un arbol de la manera {raiz [hijo1 [hijo1.1, hijo1.2], hijo2 []]}
