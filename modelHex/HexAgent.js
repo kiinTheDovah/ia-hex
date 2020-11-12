@@ -18,7 +18,7 @@ class HexAgent extends Agent {
         let available = getHexAt(board, 0);
         let nTurn = size * size - available.length;
         let limite;
-        if (available.length > 2) {
+        if (available.length > 20) {
             limite = 3;
         } else {
             limite = 4;
@@ -211,9 +211,9 @@ function countConnects(board, pid) {
     let rid = rival(pid); //rival id
     let length = board.length;
     let valOf0C = 0;
-    let valOf1C = 0.2;
-    let valOf2C = 2;
-    let valOf3C = 2.5;
+    let valOf1C = 1;
+    let valOf2C = 0.4;
+    let valOf3C = 0.5;
     let valOf4plusC = -1;
 
     for (let i = 0; i < length; i++) {
@@ -306,22 +306,6 @@ function heuristica(board, id_Agent) {
     let dijk;
     let rid = rival(id_Agent); //rival id
 
-    /* for (let k = 0; k < size; k++) {
-        for (let j = 0; j < size; j++) {
-            if (board[k][j] == 2 || board[k][j] == 1){//parseInt(id_Agent, 10)) {
-                //console.log('encontre un 1 en: ',k,j)
-                if (k < centro) {
-                    result = result + k + 1;
-                } else result = result + size - k;
-
-                if (j < centro) {
-                    result = result + j + 1;
-                } else result = result + size - j;
-                //console.log('heuristica de: ',k,j,'es: ',result)
-            }
-        }
-    } */
-
     puentesVal = puentes(board, id_Agent);
     -puentes(board, rid) / 3;
     connectsVal = countConnects(board, id_Agent) - countConnects(board, rid);
@@ -331,10 +315,14 @@ function heuristica(board, id_Agent) {
         10 *
         (8 / (1 + Dijktra(board, id_Agent)) - 4 / (1 + Dijktra(board, rid))); */
 
-    result = 2 * puentesVal + connectsVal + valueBo; //+ valueBo;+ dijk
+    result = 4 * puentesVal + connectsVal + 3 * valueBo; //+ valueBo;+ dijk
     if (winwin == 500) {
         let available = getHexAt(board, 0);
         result += winwin + available.length * 1000;
+    }
+    if (winwin == -500) {
+        let available = getHexAt(board, 0);
+        result -= winwin + available.length * 1000;
     }
     return result;
 }
@@ -640,16 +628,16 @@ function fijkstra(board) {
 function valueBoard(board = [], id_Agent) {
     let valor = 0;
     switch (id_Agent) {
-        case '2':
+        case '1':
             let valor_Board_1 = [
                 //  0 1 2 3 4 5 6
-                [4, 3, 3, 3, 3, 3, 4], // 0
-                [2, 4, 3, 4, 3, 4, 2], // 1
-                [2, 4, 5, 5, 5, 4, 2], // 2
-                [2, 4, 5, 6, 5, 4, 2], // 3
-                [2, 4, 5, 5, 5, 4, 2], // 4
-                [2, 4, 3, 4, 3, 4, 2], // 5
-                [4, 3, 3, 3, 3, 3, 4],
+                [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0], // 0
+                [1.1, 0.8, 0.3, 0.0, 1.0, 1.4, 1.4], // 1
+                [1.2, 1.0, 1.0, 1.2, 1.5, 1.4, 1.3], // 2
+                [1.4, 1.5, 1.4, 2.0, 1.4, 1.5, 1.4], // 3
+                [1.3, 1.4, 1.5, 1.2, 1.0, 1.0, 1.2], // 4
+                [1.4, 1.4, 1.0, 0.0, 0.3, 0.8, 1.1], // 5
+                [2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
             ]; // 6
             for (let i = 0; i < board.length - 1; i++) {
                 for (let j = 0; j < board[i].length; j++) {
@@ -661,16 +649,16 @@ function valueBoard(board = [], id_Agent) {
             }
             break;
 
-        case '1':
+        case '2':
             let valor_Board_2 = [
                 //  0 1 2 3 4 5 6
-                [5, 2, 2, 2, 2, 2, 5], // 0
-                [4, 4, 3, 3, 3, 3, 4], // 1
-                [4, 5, 5, 5, 5, 5, 4], // 2
-                [4, 6, 6, 7, 6, 6, 4], // 3
-                [4, 5, 5, 5, 5, 5, 4], // 4
-                [4, 3, 3, 3, 3, 3, 4], // 5
-                [5, 2, 2, 2, 2, 2, 5],
+                [2.0, 1.4, 1.3, 1.4, 1.2, 1.1, 1.0], // 0
+                [0.0, 1.4, 1.4, 1.5, 1.0, 0.8, 0.0], // 1
+                [0.0, 1.0, 1.5, 1.4, 1.0, 0.3, 0.0], // 2
+                [0.0, 0.0, 1.2, 2.0, 1.2, 0.0, 0.0], // 3
+                [0.0, 0.3, 1.0, 1.4, 1.5, 1.0, 0.0], // 4
+                [0.0, 0.8, 1.0, 1.5, 1.4, 1.4, 0.0], // 5
+                [1.0, 1.1, 1.2, 1.4, 1.3, 1.4, 2.0],
             ]; // 6
             for (let i = 0; i < board.length - 1; i++) {
                 for (let j = 0; j < board[i].length; j++) {
@@ -1123,14 +1111,4 @@ function shortestWay(id_Agent, board, caminos) {
             break;
     }
     return min;
-}
-
-function crearPath(min, visited) {
-    let path = [];
-    let iterativeMin = min;
-    while (iterativeMin != null) {
-        path.push(iterativeMin[0]);
-        iterativeMin = buscarCamino(iterativeMin[2], visited);
-    }
-    return path;
 }
