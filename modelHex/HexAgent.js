@@ -814,6 +814,9 @@ function Dijktra(board, id_Agent) {
     switch (id_Agent) {
         case '1':
             for (let i = 0; i < board.length; i++) {
+                if (!board[i].includes('1')) {
+                    continue;
+                }
                 //console.log("Paso por el For de src: ", i)
                 //Agrego el punto de partida
                 let src = [i, 0];
@@ -841,6 +844,17 @@ function Dijktra(board, id_Agent) {
             break;
         case '2':
             for (let i = 0; i < board.length; i++) {
+                let aux1 = false;
+                for (let j = 0; j < board.length; j++) {
+                    if (board[j][i] == '2') {
+                        aux1 = true;
+                        break;
+                    }
+                }
+                if (!aux1) {
+                    continue;
+                }
+
                 //console.log("Paso por el For de src: ", i)
                 //Agrego el punto de partida
                 let src = [0, i];
