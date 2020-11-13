@@ -1,5 +1,7 @@
 const Agent = require('ai-agents').Agent;
-let infinito = Number.MAX_SAFE_INTEGER;
+var infinito = Number.MAX_SAFE_INTEGER;
+var lim = 2;
+var camMin = 99;
 class HexAgent extends Agent {
     constructor(value) {
         super(value);
@@ -19,7 +21,7 @@ class HexAgent extends Agent {
         let nTurn = size * size - available.length;
         let limite;
         if (available.length > 20) {
-            limite = 3;
+            limite = 2;
         } else {
             limite = 4;
         }
@@ -56,7 +58,7 @@ class HexAgent extends Agent {
         //console.log(minimax(nodoMinmax,2,nodoMinmax.type,this.getID()))
         console.log('Pienso, luego existo...');
         //Se crea el arbol con todo en infinito
-        let nodoRaizMinMax = generarArbol(raiz, agente, limite);
+        let valorAlpha = generarArbol(raiz, agente, limite);
         //Le pasamos el arbol a minimax para que retorne el mejor valor y cambie los infinitos del arbol
         /*
         //ESTE COMENTARIO ES DEL MINIMAX
@@ -75,27 +77,28 @@ class HexAgent extends Agent {
                 ' niveles sin un hash con una heuristica chafa es: ',
             valorMinimax
         );
-        //console.log('arbol generado: ',nodoRaizMinMax);        
+             
         //console.log(generarArbol(raiz,this.getID(),limite))
         */
+        //console.log('arbol generado: ', nodoRaizMinMax);
 
         //////      ESTE COMENTARIO ES DEL ALFA     //////
-        let valorAlpha = alfa_Beta(
+        /* let valorAlpha = alfa_Beta(
             nodoRaizMinMax,
             limite,
             -infinito,
             infinito,
             agente
-        );
-        let jugada = retornarPosition(nodoRaizMinMax, valorAlpha);
-        //console.log('Arbol generado: ', nodoRaizMinMax);
+        ); */
+        let jugada = retornarPosition(raiz, valorAlpha);
+        console.log('Arbol generado: ', raiz);
         console.log(
             'El valor del mejor camino con alfa-beta en ' +
                 limite +
                 ' niveles sin un hash es: ',
             valorAlpha
         );
-        console.log('La jugada para ' + agente + ' es: ', jugada);
+        //console.log('La jugada para ' + agente + ' es: ', jugada);
         //////      ESTE COMENTARIO ES DEL ALFA     //////
         let move =
             available[Math.round(Math.random() * (available.length - 1))];
@@ -264,32 +267,6 @@ function rival(id_Agent) {
     }
 }
 
-//TODO
-function hashNodeToId(node) {
-    let board = node.board;
-    let hashId = '';
-    for (let i = 0; i < board.length; i++) {
-        for (let j = 0; j < board.length; j++) {
-            let num = board[i][j];
-            hashId = hashId.concat(num.toString(10));
-        }
-    }
-    return hashId;
-}
-
-//TODO
-function avoidRepeatedState(node, hash) {
-    let hashId = hashNodeToId(node);
-    //console.log(hashNum);
-    //console.log(isHashRepeated(node, hashNum));
-    if (hash.includes(hashId)) {
-        return false;
-    }
-    hash.unshift(hashId);
-    //console.log(hash);
-    return true;
-}
-
 /**
  * Funcion Heuristica donde llamaremos a las demas funciones que en conjunto darán un valor al estado
  * @param {Matrix} board
@@ -309,13 +286,13 @@ function heuristica(board, id_Agent) {
     puentesVal = puentes(board, id_Agent);
     -puentes(board, rid) / 3;
     connectsVal = countConnects(board, id_Agent) - countConnects(board, rid);
-    valueBo = valueBoard(board, id_Agent) - valueBoard(board, rival(id_Agent));
+    //valueBo = valueBoard(board, id_Agent) - valueBoard(board, rival(id_Agent));
     winwin = Winner(board, id_Agent) - Winner(board, rival(id_Agent));
-    /* dijk =
+    dijk =
         10 *
-        (8 / (1 + Dijktra(board, id_Agent)) - 4 / (1 + Dijktra(board, rid))); */
+        (8 / (1 + Dijktra(board, id_Agent)) - 4 / (1 + Dijktra(board, rid)));
 
-    result = 4 * puentesVal + connectsVal + 3 * valueBo; //+ valueBo;+ dijk
+    result = 3 * puentesVal + connectsVal + 3 * dijk; //+ valueBo;
     if (winwin == 500) {
         let available = getHexAt(board, 0);
         result += winwin + available.length * 1000;
@@ -382,24 +359,21 @@ function puentes(board = [], id_Agent, type) {
  * @param {int} limite
  */
 function generarArbol(nodo, id_Agent, limite) {
-    let nodoEvaluado = nodo;
-    let hash = [];
     /* if (avoidRepeatedState(nodoEvaluado, hash)) {
         agregarHijos(nodoEvaluado, id_Agent);
     } //else console.log('me salte un nodo') */
-    agregarHijos(nodoEvaluado, id_Agent);
-
-    if (nodoEvaluado.children[0] == null) {
+    /*    if (nodo.children[0] == null) {
         console.log('Ningun camino es viable.');
-    }
-    generarHojas(nodoEvaluado.children, limite, id_Agent, hash);
-    return nodo;
+    } */
+    let valAlfa = alfa_Beta(nodo, limite, -infinito, infinito, id_Agent);
+    //generarHojas(nodoEvaluado.children, limite, id_Agent);
+    return valAlfa;
 }
 
 /**
  * Funcion recursiva que actualiza el array de las hojas del root
  */
-function generarHojas(listOfChildren, limite, id_Agent, hash) {
+function generarHojas(listOfChildren, limite, id_Agent) {
     if (listOfChildren[0] == null) {
         return null;
     }
@@ -417,7 +391,7 @@ function generarHojas(listOfChildren, limite, id_Agent, hash) {
                 ); */
             }
             listOfChildren[i].children.push(
-                generarHojas(listOfChildren[i].children, limite, id_Agent, hash)
+                generarHojas(listOfChildren[i].children, limite, id_Agent)
             );
             listOfChildren[i].children.pop();
         }
@@ -523,9 +497,13 @@ function minimax(node, limite, minMax, id_Agent) {
 
 /**
  * Funcion alfa_Beta que espera un nodo PAPAPAPAPAPA, osea el papa conoce a los hijos
+ *
  */
 
 function alfa_Beta(node, limite, a, b, id_Agent) {
+    if (node.level < lim) {
+        agregarHijos(node, id_Agent);
+    }
     if ((limite = 0 || node.children[0] == null)) {
         //console.log('valor de la hoja: ',heuristica(node.board, id_Agent))
         //console.log('Heuristica: ',node.board)
@@ -824,8 +802,9 @@ function contarCamino(board, pos, hash = [], id_Agent) {
     }
     return bool;
 }
-
+// TODO: cortar caminos que son más largos que el más corto que he encontrado
 function Dijktra(board, id_Agent) {
+    camMin = 99;
     //let src=[0,0];//row,colum
     let minPQ = [];
     let visited = []; //ahora es caminos
@@ -915,142 +894,283 @@ function checkArroun(min, board, minPQ, id_Agent, visited) {
     //console.log(`Llego: ${min}`)
     for (let i = 1; i <= 6; i++) {
         //console.log(`For numero: ${i}`)
-        switch (i) {
-            case 1:
-                //console.log(`Caso ${i}`)
-                if (min[0][0] > 0) {
-                    let row = min[0][0] - 1;
-                    let colum = min[0][1];
-                    if (!visitedBefore([row, colum], visited)) {
-                        agregar(
-                            board[row][colum],
-                            min[1],
-                            [row, colum],
-                            minPQ,
-                            id_Agent
-                        );
-                    } //else console.log(`No agrege: [${row},${colum}]`)
-                    //No se agregan pasos
-                }
-                break;
-            case 2:
-                //console.log(`Caso ${i}`)
-                if (min[0][0] > 0 && min[0][1] < board.length - 1) {
-                    let row = min[0][0] - 1;
-                    let colum = min[0][1] + 1;
-                    if (!visitedBefore([row, colum], visited)) {
-                        agregar(
-                            board[row][colum],
-                            min[1],
-                            [row, colum],
-                            minPQ,
-                            id_Agent
-                        );
-                    } //else console.log(`No agrege: [${row},${colum}]`)
-                    //No se agregan pasos
-                }
-                break;
-            case 3:
-                //console.log(`Caso ${i}`)
-                if (min[0][1] < board.length - 1) {
-                    let row = min[0][0];
-                    //console.log("Row: ", row)
-                    let colum = min[0][1] + 1;
-                    //console.log("Colum: ",colum)
-                    if (!visitedBefore([row, colum], visited)) {
-                        agregar(
-                            board[row][colum],
-                            min[1],
-                            [row, colum],
-                            minPQ,
-                            id_Agent
-                        );
-                    } //else console.log(`No agrege: [${row},${colum}]`)
-                    //No se agregan pasos
-                }
-                break;
-            case 4:
-                //console.log(`Caso ${i}`)
-                if (min[0][0] < board.length - 1) {
-                    let row = min[0][0] + 1;
-                    let colum = min[0][1];
-                    if (!visitedBefore([row, colum], visited)) {
-                        agregar(
-                            board[row][colum],
-                            min[1],
-                            [row, colum],
-                            minPQ,
-                            id_Agent
-                        );
-                    } //else console.log(`No agrege: [${row},${colum}]`)
-                    //No se agregan pasos
-                }
-                break;
-            case 5:
-                //console.log(`Caso ${i}`)
-                if (min[0][1] > 0 && min[0][0] < board.length - 1) {
-                    let row = min[0][0] + 1;
-                    let colum = min[0][1] - 1;
-                    if (!visitedBefore([row, colum], visited)) {
-                        agregar(
-                            board[row][colum],
-                            min[1],
-                            [row, colum],
-                            minPQ,
-                            id_Agent
-                        );
-                    } //else console.log(`No agrege: [${row},${colum}]`)
-                    //No se agregan pasos
-                }
-                break;
-            case 6:
-                //console.log(`Caso ${i}`)
-                if (min[0][1] > 0) {
-                    let row = min[0][0];
-                    let colum = min[0][1] - 1;
-                    if (!visitedBefore([row, colum], visited)) {
-                        agregar(
-                            board[row][colum],
-                            min[1],
-                            [row, colum],
-                            minPQ,
-                            id_Agent
-                        );
-                    } //else console.log(`No agrege: [${row},${colum}]`)
-                    //No se agregan pasos
-                }
-                break;
-            default:
-                break;
+        if (id_Agent == '1') {
+            switch (i) {
+                case 1: //DERECHA
+                    //console.log(`Caso ${i}`)
+                    if (min[0][1] < board.length - 1) {
+                        let row = min[0][0];
+                        //console.log("Row: ", row)
+                        let colum = min[0][1] + 1;
+                        //console.log("Colum: ",colum)
+                        if (!visitedBefore([row, colum], visited)) {
+                            agregar(
+                                board[row][colum],
+                                min[1],
+                                [row, colum],
+                                minPQ,
+                                id_Agent
+                            );
+                        } //else console.log(`No agrege: [${row},${colum}]`)
+                        //No se agregan pasos
+                    }
+                    break;
+                case 2: // ARRIBA-DERECHA
+                    //console.log(`Caso ${i}`)
+                    if (min[0][0] > 0 && min[0][1] < board.length - 1) {
+                        let row = min[0][0] - 1;
+                        let colum = min[0][1] + 1;
+                        if (!visitedBefore([row, colum], visited)) {
+                            agregar(
+                                board[row][colum],
+                                min[1],
+                                [row, colum],
+                                minPQ,
+                                id_Agent
+                            );
+                        } //else console.log(`No agrege: [${row},${colum}]`)
+                        //No se agregan pasos
+                    }
+                    break;
+                case 3: //ABAJO
+                    //console.log(`Caso ${i}`)
+                    if (min[0][0] < board.length - 1) {
+                        let row = min[0][0] + 1;
+                        let colum = min[0][1];
+                        if (!visitedBefore([row, colum], visited)) {
+                            agregar(
+                                board[row][colum],
+                                min[1],
+                                [row, colum],
+                                minPQ,
+                                id_Agent
+                            );
+                        } //else console.log(`No agrege: [${row},${colum}]`)
+                        //No se agregan pasos
+                    }
+                    break;
+                case 4: //ABAJO-IZQUIERDA
+                    //console.log(`Caso ${i}`)
+                    if (min[0][1] > 0 && min[0][0] < board.length - 1) {
+                        let row = min[0][0] + 1;
+                        let colum = min[0][1] - 1;
+                        if (!visitedBefore([row, colum], visited)) {
+                            agregar(
+                                board[row][colum],
+                                min[1],
+                                [row, colum],
+                                minPQ,
+                                id_Agent
+                            );
+                        } //else console.log(`No agrege: [${row},${colum}]`)
+                        //No se agregan pasos
+                    }
+                    break;
+                case 5: // ARRIBA
+                    //console.log(`Caso ${i}`)
+                    if (min[0][0] > 0) {
+                        let row = min[0][0] - 1;
+                        let colum = min[0][1];
+                        if (!visitedBefore([row, colum], visited)) {
+                            agregar(
+                                board[row][colum],
+                                min[1],
+                                [row, colum],
+                                minPQ,
+                                id_Agent
+                            );
+                        } //else console.log(`No agrege: [${row},${colum}]`)
+                        //No se agregan pasos
+                    }
+                    break;
+                case 6: //IZQUIERDA
+                    //console.log(`Caso ${i}`)
+                    if (min[0][1] > 0) {
+                        let row = min[0][0];
+                        let colum = min[0][1] - 1;
+                        if (!visitedBefore([row, colum], visited)) {
+                            agregar(
+                                board[row][colum],
+                                min[1],
+                                [row, colum],
+                                minPQ,
+                                id_Agent
+                            );
+                        } //else console.log(`No agrege: [${row},${colum}]`)
+                        //No se agregan pasos
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+        } else {
+            switch (i) {
+                case 1: //ABAJO
+                    //console.log(`Caso ${i}`)
+                    if (min[0][0] < board.length - 1) {
+                        let row = min[0][0] + 1;
+                        let colum = min[0][1];
+                        if (!visitedBefore([row, colum], visited)) {
+                            agregar(
+                                board[row][colum],
+                                min[1],
+                                [row, colum],
+                                minPQ,
+                                id_Agent
+                            );
+                        } //else console.log(`No agrege: [${row},${colum}]`)
+                        //No se agregan pasos
+                    }
+                    break;
+                case 2: //ABAJO-IZQUIERDA
+                    //console.log(`Caso ${i}`)
+                    if (min[0][1] > 0 && min[0][0] < board.length - 1) {
+                        let row = min[0][0] + 1;
+                        let colum = min[0][1] - 1;
+                        if (!visitedBefore([row, colum], visited)) {
+                            agregar(
+                                board[row][colum],
+                                min[1],
+                                [row, colum],
+                                minPQ,
+                                id_Agent
+                            );
+                        } //else console.log(`No agrege: [${row},${colum}]`)
+                        //No se agregan pasos
+                    }
+                    break;
+                case 3: //DERECHA
+                    //console.log(`Caso ${i}`)
+                    if (min[0][1] < board.length - 1) {
+                        let row = min[0][0];
+                        //console.log("Row: ", row)
+                        let colum = min[0][1] + 1;
+                        //console.log("Colum: ",colum)
+                        if (!visitedBefore([row, colum], visited)) {
+                            agregar(
+                                board[row][colum],
+                                min[1],
+                                [row, colum],
+                                minPQ,
+                                id_Agent
+                            );
+                        } //else console.log(`No agrege: [${row},${colum}]`)
+                        //No se agregan pasos
+                    }
+                    break;
+                case 4: //IZQUIERDA
+                    //console.log(`Caso ${i}`)
+                    if (min[0][1] > 0) {
+                        let row = min[0][0];
+                        let colum = min[0][1] - 1;
+                        if (!visitedBefore([row, colum], visited)) {
+                            agregar(
+                                board[row][colum],
+                                min[1],
+                                [row, colum],
+                                minPQ,
+                                id_Agent
+                            );
+                        } //else console.log(`No agrege: [${row},${colum}]`)
+                        //No se agregan pasos
+                    }
+                    break;
+                case 5: // ARRIBA-DERECHA
+                    //console.log(`Caso ${i}`)
+                    if (min[0][0] > 0 && min[0][1] < board.length - 1) {
+                        let row = min[0][0] - 1;
+                        let colum = min[0][1] + 1;
+                        if (!visitedBefore([row, colum], visited)) {
+                            agregar(
+                                board[row][colum],
+                                min[1],
+                                [row, colum],
+                                minPQ,
+                                id_Agent
+                            );
+                        } //else console.log(`No agrege: [${row},${colum}]`)
+                        //No se agregan pasos
+                    }
+                    break;
+
+                case 6: // ARRIBA
+                    //console.log(`Caso ${i}`)
+                    if (min[0][0] > 0) {
+                        let row = min[0][0] - 1;
+                        let colum = min[0][1];
+                        if (!visitedBefore([row, colum], visited)) {
+                            agregar(
+                                board[row][colum],
+                                min[1],
+                                [row, colum],
+                                minPQ,
+                                id_Agent
+                            );
+                        } //else console.log(`No agrege: [${row},${colum}]`)
+                        //No se agregan pasos
+                    }
+                    break;
+
+                default:
+                    break;
+            }
         }
     }
 }
 
 function agregar(valueNext, dis, nextPos, minPQ, id_Agent) {
-    switch (valueNext) {
-        case 0:
-            minPQ.push([nextPos, dis + 1]);
-            break;
-        case '1':
-            if (id_Agent == 1) {
+    if (camMin > dis) {
+        switch (valueNext) {
+            case 0:
+                minPQ.push([nextPos, dis + 1]);
+                if (camMin > dis + 1) {
+                    if (id_Agent == '1') {
+                        if (nextPos[1] == 6) {
+                            camMin = dis + 1;
+                        }
+                    }
+                    if (id_Agent == '2') {
+                        if (nextPos[0] == 6) {
+                            camMin = dis + 1;
+                        }
+                    }
+                }
+                break;
+            case id_Agent:
                 minPQ.push([nextPos, dis]);
-            } else if (id_Agent == 2) {
+                if (camMin > dis) {
+                    if (id_Agent == '1') {
+                        if (nextPos[1] == 6) {
+                            camMin = dis;
+                        }
+                    }
+                    if (id_Agent == '2') {
+                        if (nextPos[0] == 6) {
+                            camMin = dis;
+                        }
+                    }
+                }
+            /* 
+                if (id_Agent == 1) {
+                    minPQ.push([nextPos, dis]);
+                } else if (id_Agent == 2) {
+                    //no debe agregar el paso
+                } else console.log(`Agente loco`);
+                break;
+            case '2':
+                if (id_Agent == 1) {
+                    //no debe agregar el paso
+                } else if (id_Agent == 2) {
+                    minPQ.push([nextPos, dis]);
+                } else console.log(`Agente loco`);
+                break; */
+            default:
                 //no debe agregar el paso
-            } else console.log(`Agente loco`);
-            break;
-        case '2':
-            if (id_Agent == 1) {
-                //no debe agregar el paso
-            } else if (id_Agent == 2) {
-                minPQ.push([nextPos, dis]);
-            } else console.log(`Agente loco`);
-            break;
-        default:
-            console.log(`Que es esto: ${valueNext}`);
-            break;
+                break;
+        }
     }
 }
-
 function visitedBefore(pos, visited) {
     for (let i = 0; i < visited.length; i++) {
         //console.log(`Row: ${visited[i][0][0]}`)
