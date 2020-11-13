@@ -14,21 +14,16 @@ class HexAgent extends Agent {
      * Example: [1, 1]
      */
     send() {
-        var start = new Date().getTime();
+        //var start = new Date().getTime();
         let board = this.perception;
         let size = board.length;
         let available = getHexAt(board, 0);
         let nTurn = size * size - available.length;
 
         let limite = lim;
-        /* if (available.length > 20) {
-            limite = 5;
-        } else {
-            limite = 4;
-        } */
-        //console.log('limite', limite);
         let agente = this.getID();
 
+        //Nodo Raiz - Estado inicial
         let raiz = {
             type: 'MAX',
             level: 0,
@@ -37,6 +32,7 @@ class HexAgent extends Agent {
             board: board,
             action: null,
         };
+        /////    PLAY AS HUMAN VS AI     /////
         /* if (nTurn % 2 == 0) { //let the hooman play
             // == 0 primer turno // == 1 segundo turno
             let row = prompt('row: ', '0');
@@ -47,74 +43,34 @@ class HexAgent extends Agent {
         } */
         if (nTurn == 0) {
             // First move
-            //console.log('el turno del agente: ',this.getID())
             let move = [Math.floor(size / 2) - 1, Math.floor(size / 2)];
-            /* move =
-                available[Math.round(Math.random() * (available.length - 1))]; */
             return move;
         } else if (nTurn == 1) {
-            //console.log('el turno del agente: ',this.getID())
+            // Second move
             let move = [Math.floor(size / 2), Math.floor(size / 2)];
-            /* move =
-                available[Math.round(Math.random() * (available.length - 1))]; */
             return move;
         }
-        //console.log(amplitud(root,this.getID(),4));
-        //console.log(minimax(nodoMinmax,2,nodoMinmax.type,this.getID()))
-        console.log('Pienso, luego existo...');
+        //console.log('Pienso, luego existo...');
         //Se crea el arbol con todo en infinito
-
         let valorAlpha = alfa_Beta(raiz, limite, -infinito, infinito, agente);
-
-        //Le pasamos el arbol a minimax para que retorne el mejor valor y cambie los infinitos del arbol
-        /*
-        //ESTE COMENTARIO ES DEL MINIMAX
-        let valorMinimax = minimax(
-            nodoRaizMinMax,
-            limite,
-            nodoRaizMinMax.type,
-            agente
-        );
-        //Le pregunta al arbol con utilidad definida cual de sus nodos es igual al minimax
-        let jugada = retornarPosition(nodoRaizMinMax, valorMinimax);
-
-        console.log(
-            'El valor del mejor camino con minimax en ' +
-                limite +
-                ' niveles sin un hash con una heuristica chafa es: ',
-            valorMinimax
-        );
-             
-        //console.log(generarArbol(raiz,this.getID(),limite))
-        */
-        //console.log('arbol generado: ', nodoRaizMinMax);
-
-        //////      ESTE COMENTARIO ES DEL ALFA     //////
-        /* let valorAlpha = alfa_Beta(
-            nodoRaizMinMax,
-            limite,
-            -infinito,
-            infinito,
-            agente
-        ); */
+        
         let jugada = retornarPosition(raiz, valorAlpha);
         //console.log('Arbol generado: ', raiz);
-        console.log(
+        /* console.log(
             'El valor del mejor camino con alfa-beta en ' +
                 limite +
                 ' niveles sin un hash es: ',
             valorAlpha
-        );
+        ); */
         //console.log('La jugada para ' + agente + ' es: ', jugada);
-        //////      ESTE COMENTARIO ES DEL ALFA     //////
+        
         let move =
             available[Math.round(Math.random() * (available.length - 1))];
 
-        var end = new Date().getTime();
+        /* var end = new Date().getTime();
         var time = (end - start) / 1000;
-        console.log('time: ', time, 's');
+        console.log('time: ', time, 's'); */
 
-        //return [Math.floor(move / board.length), move % board.length];
         return jugada;
     }
 }
@@ -163,7 +119,7 @@ function getHexAt(board, pid) {
  * Down        : 3
  * Down & Left : 4
  * Left        : 5
- * @param {Array} board
+ * @param {Array2D} board
  * @param {Array} pos
  */
 function checkAround(board, pos) {
@@ -217,8 +173,6 @@ function checkAround(board, pos) {
  */
 function countConnects(board, pid) {
     let cells = 0;
-    /* let playerChips = getHexAt(board, 1);
-    let rid = rival(pid); //rival id */
     let length = board.length;
     let valOf0C = 0;
     let valOf1C = 0.2;
@@ -281,24 +235,20 @@ function rival(id_Agent) {
  */
 function heuristica(board, id_Agent) {
     let result = 0;
-    let size = board.length;
-    let centro = Math.round(size / 2);
     let puentesVal;
     let connectsVal;
-    let valueBo;
     let winwin;
     let dijk;
     let rid = rival(id_Agent); //rival id
 
     puentesVal = puentes(board, id_Agent) - puentes(board, rid) / 3;
     connectsVal = countConnects(board, id_Agent) - countConnects(board, rid);
-    //valueBo = valueBoard(board, id_Agent) - valueBoard(board, rival(id_Agent));
     winwin = Winner(board, id_Agent) - Winner(board, rival(id_Agent));
     dijk =
         10 *
-        (8 / (1 + Dijktra(board, id_Agent)) - 4 / (1 + Dijktra(board, rid)));
+        (8 / (1 + Dijkstra(board, id_Agent)) - 4 / (1 + Dijkstra(board, rid)));
 
-    result = 1 * puentesVal + connectsVal + 4 * dijk; // //+ valueBo;
+    result = 1 * puentesVal + connectsVal + 4 * dijk;
     if (winwin == 500) {
         let available = getHexAt(board, 0);
         result += winwin + available.length * 1000;
@@ -316,11 +266,9 @@ function heuristica(board, id_Agent) {
  * @param {int} id_Agent
  */
 function puentes(board = [], id_Agent) {
-    //}, type){
     let valor = 0;
     let peso = 1;
     let length = board.length;
-    let rid = rival(id_Agent); //rival id
     for (let i = 0; i < length - 1; i++) {
         for (let j = 0; j < length; j++) {
             if (board[i][j] == id_Agent) {
@@ -362,7 +310,7 @@ function puentes(board = [], id_Agent) {
 }
 
 /**
- * Retorna un arbol de la manera {raiz [hijo1 [hijo1.1, hijo1.2], hijo2 []]}
+ * Genera el arbol por amplitud. Hace una preevaluacion del arbol con minimax. 
  * @param {Object} nodo
  * @param {int} id_Agent
  * @param {int} limite
@@ -373,10 +321,13 @@ function generarArbol(nodo, id_Agent, limite) {
 }
 
 /**
- * Funcion recursiva que actualiza el array de las hojas del root
+ * Crea los hijos de manera recursiva hasta un nivel dado.
+ * @param {Array} listOfChildren 
+ * @param {Number} limite 
+ * @param {String} id_Agent 
+ * @param {Boolean} fal 
  */
 function generarHojas(listOfChildren, limite, id_Agent, fal) {
-    //console.log('listOfChildren', listOfChildren);
     if (listOfChildren[0] == null) {
         return null;
     }
@@ -387,12 +338,7 @@ function generarHojas(listOfChildren, limite, id_Agent, fal) {
         for (let i = 0; i < listOfChildren.length; i++) {
             //Esto falla si no llega a tener hijos
             agregarHijos(listOfChildren[i], id_Agent, fal);
-            if (listOfChildren[i].children[0] == null) {
-                /* console.log(
-                    'Dijkstra() failed: Hay un men sin hijos en el nivel: ',
-                    listOfChildren[i].level
-                ); */
-            }
+            
             listOfChildren[i].children.push(
                 generarHojas(listOfChildren[i].children, limite, id_Agent, fal)
             );
@@ -404,7 +350,7 @@ function generarHojas(listOfChildren, limite, id_Agent, fal) {
 /**
  * Crea una copia de un array 2D en clipboard
  * @param {Array} clipboard 
- * @param {Array2D} board 
+ * @param {Array} board 
  * @param {Array} pos 
  * @param {string} id_Agent 
  */
@@ -427,17 +373,17 @@ function copyBoard(clipboard, board, pos, id_Agent) {
 /**
  * Agrega los hijos del nodo enviado en su parametro children
  * @param {Object} nodoEvaluado 
- * @param {string} id_Agent 
- * @param {bool} tru 
+ * @param {String} id_Agent 
+ * @param {Boolean} tru 
  */
 function agregarHijos(nodoEvaluado, id_Agent, tru) {
     let board = nodoEvaluado.board;
-    //console.log('nodoEvaluado', nodoEvaluado);
     let id_Rival = rival(id_Agent);
+
+    //Cuando tru es falso hace referencia al filter creando un arbol
     if (!tru) {
         let availab = getHexAt(board, 0);
         for (let i = 0; i < availab.length; i++) {
-            //console.log('aqui');
             let row = availab[i][0];
             let col = availab[i][1];
 
@@ -470,12 +416,10 @@ function agregarHijos(nodoEvaluado, id_Agent, tru) {
         }
         return;
     }
-    let dijkstra = fijkstra(board, id_Agent);
-    //console.log('aqui si llegóooooo', dijkstra);
-    //console.log('aqui', dijkstra);
-    //console.log('dijkstra.length', dijkstra.length);
+    let dijkstra = filter(board, id_Agent);
+
+    //Lee los nodos de dijkstra y agrega los hijos al nodo padre
     for (let i = 0; i < dijkstra.length; i++) {
-        //console.log('aqui');
         let row = dijkstra[i].action[0];
         let col = dijkstra[i].action[1];
 
@@ -513,20 +457,18 @@ function agregarHijos(nodoEvaluado, id_Agent, tru) {
 /**
  * Funcion minimax, dado un nodo retorna el valor de la mejor heuristica en sus hojas.
  * @param {Object} node 
- * @param {int} limite 
- * @param {bool} minoMax 
+ * @param {number} limite 
+ * @param {Boolean} minoMax 
  * @param {string} id_Agent 
  */
-
 function minimax(node, limite, minoMax, id_Agent) {
     let value = 0;
     if ((limite = 0 || node.children[0] == null)) {
-        //console.log('valor de la hoja: ',heuristica(node.board, id_Agent))
         let puentesVal;
         let connectsVal;
         let valueBo;
         let winwin;
-        let rid = rival(id_Agent); //rival id
+        let rid = rival(id_Agent);
         let board = node.board;
 
         puentesVal = puentes(board, id_Agent) - puentes(board, rid) / 3;
@@ -543,13 +485,12 @@ function minimax(node, limite, minoMax, id_Agent) {
             let available = getHexAt(board, 0);
             result -= winwin + available.length * 1000;
         }
-        node.utility = result; //heuristica(node.board, id_Agent);
+        node.utility = result;
         return node.utility;
     }
     if (minoMax == 'MAX') {
         value = -infinito;
         for (let i = 0; i < node.children.length; i++) {
-            //console.log('evaluando: ',node.children[i])
             value = Math.max(
                 value,
                 minimax(node.children[i], limite - 1, 'MIN', id_Agent)
@@ -560,7 +501,6 @@ function minimax(node, limite, minoMax, id_Agent) {
     } else {
         value = infinito;
         for (let i = 0; i < node.children.length; i++) {
-            //console.log('evaluando: ',node.children[i])
             value = Math.min(
                 value,
                 minimax(node.children[i], limite - 1, 'MAX', id_Agent)
@@ -575,9 +515,9 @@ function minimax(node, limite, minoMax, id_Agent) {
  * Poda alfa beta, retorna el mejor valor de la heuristica de sus hojas a la vez que crea el arbol eliminando nodos
  * que nunca recorrerá.
  * @param {Object} node 
- * @param {int} limite 
- * @param {int} a 
- * @param {int} b 
+ * @param {Number} limite 
+ * @param {Number} a 
+ * @param {Number} b 
  * @param {string} id_Agent 
  */
 function alfa_Beta(node, limite, a, b, id_Agent) {
@@ -585,16 +525,12 @@ function alfa_Beta(node, limite, a, b, id_Agent) {
         agregarHijos(node, id_Agent, true);
     }
     if ((limite = 0 || node.children[0] == null)) {
-        //console.log('valor de la hoja: ',heuristica(node.board, id_Agent))
-        //console.log('Heuristica: ',node.board)
-        //return node.board;
-        let utilidad = heuristica(node.board, id_Agent); //, node.type);
+        let utilidad = heuristica(node.board, id_Agent);
         node.utility = utilidad;
         return utilidad;
     }
     if (node.type == 'MAX') {
         for (let i = 0; i < node.children.length; i++) {
-            //console.log('evaluando: ',node.children[i])
             a = Math.max(
                 a,
                 alfa_Beta(node.children[i], limite - 1, a, b, id_Agent)
@@ -607,7 +543,6 @@ function alfa_Beta(node, limite, a, b, id_Agent) {
         return a;
     } else {
         for (let i = 0; i < node.children.length; i++) {
-            //console.log('evaluando: ',node.children[i])
             b = Math.min(
                 b,
                 alfa_Beta(node.children[i], limite - 1, a, b, id_Agent)
@@ -623,11 +558,11 @@ function alfa_Beta(node, limite, a, b, id_Agent) {
 
 /**
  * Crea un hijo basado en el padre
- * @param {*} type 
- * @param {*} level 
- * @param {*} utility 
- * @param {*} board 
- * @param {*} action 
+ * @param {String} type 
+ * @param {Number} level 
+ * @param {Number} utility 
+ * @param {Array} board 
+ * @param {Array} action 
  */
 function crearHijo(type, level, utility, board, action) {
     let node = {
@@ -643,8 +578,8 @@ function crearHijo(type, level, utility, board, action) {
 
 /**
  * Dado el nodo padre, busca en sus primeros hijos cual es el que coicide con el valor maximo y retorna su accion
- * @param {*} nodo 
- * @param {*} value 
+ * @param {Object} nodo 
+ * @param {Array} value 
  */
 function retornarPosition(nodo, value) {
     for (let i = 0; i < nodo.children.length; i++) {
@@ -655,16 +590,13 @@ function retornarPosition(nodo, value) {
 }
 
 /**
- * Devuelve las primeras 4 posiciones disponibles
+ * Preevalua todos los nodos disponibles una vez, generando un arbol por amplitud y minimax.
+ * Finalmente, retorna un filtro con los mejores nodos hijos.
  * @param {Array2D} board 
  * @param {string} agente 
  */
-function fijkstra(board, agente) {
-    //console.log('fijstra');
-    // false dijkstra
+function filter(board, agente) {
     let starLim = 1;
-    //let available = getHexAt(board, 0);
-    //let length = available.length; //return dijkstra;
     let staRoot = {
         type: 'MAX',
         level: 0,
@@ -673,38 +605,22 @@ function fijkstra(board, agente) {
         board: board,
         action: null,
     };
-    //console.log('staRoot.children', staRoot);
+    
     generarArbol(staRoot, agente, starLim);
-
-    //console.log('hay arbol');
+    
     minimax(staRoot, starLim, staRoot.type, agente);
-    //console.log('staRoot', staRoot);
-    //console.log('minmax?');
+
     let orderedChild = [];
     orderedChild.push(staRoot.children[0]);
-    //console.log('aqui si llegó');
 
     for (let i = 1; i < staRoot.children.length; i++) {
-        //console.log('aqui si llegó');
-        /* if (staRoot.children[1] == null) {
-            break;
-        } */
         for (let j = 0; j < orderedChild.length; j++) {
-            //console.log(orderedChild.length);
-            /* if (staRoot.children[1] == null) {
-                break;
-            } */
-            //console.log('children', staRoot.children[i]);
-            //console.log(j);
-
             if (staRoot.children[i].utility >= orderedChild[j].utility) {
                 orderedChild.splice(j, 0, staRoot.children[i]);
-                //console.log('voy a hacer un break');
                 break;
             }
             if (j == orderedChild.length - 1) {
                 orderedChild.push(staRoot.children[i]);
-                //console.log('voy a hacer un break');
                 break;
             }
         }
@@ -714,34 +630,10 @@ function fijkstra(board, agente) {
     if (8 > orderedChild.length) {
         leng = orderedChild.length;
     }
-    //console.log('orderedChild', orderedChild);
     for (let i = 0; i < leng; i++) {
         bestChilds.push(orderedChild[i]);
     }
-    //console.log('best', bestChilds);
     return bestChilds;
-    /* 
-        available.splice(Math.round(Math.random() * (length - 1)), 1)[0],
-        available.splice(Math.round(Math.random() * (length - 2)), 1)[0],
-        for (let i = 0; i < length-37; i++) {
-        dijkstra.push(available[i]);
-    } */
-    /* let dijkstra = [
-        available[3],
-        available[0],
-        available[2],
-        available[1],
-        available[4],
-        available[6],
-        available[7],
-        available[5],
-        available[9],
-        available[8],
-        available[10],
-        available[11],
-    ]; */
-    //return dijkstra;
-    //return available;
 }
 
 /**
@@ -761,13 +653,12 @@ function valueBoard(board = [], id_Agent) {
                 [1.4, 1.5, 1.4, 2.0, 1.4, 1.5, 1.4], // 3
                 [1.3, 1.4, 1.5, 1.2, 1.0, 1.0, 1.2], // 4
                 [1.4, 1.4, 1.0, 0.0, 0.3, 0.8, 1.1], // 5
-                [2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
-            ]; // 6
+                [2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0], //6
+            ];
             for (let i = 0; i < board.length - 1; i++) {
                 for (let j = 0; j < board[i].length; j++) {
                     if (board[i][j] == id_Agent) {
                         valor = valor + valor_Board_1[i][j];
-                        //console.log('leyendo: ', [i,j])
                     }
                 }
             }
@@ -775,20 +666,19 @@ function valueBoard(board = [], id_Agent) {
 
         case '2':
             let valor_Board_2 = [
-                //  0 1 2 3 4 5 6
+                //  0   1    2    3    4    5    6
                 [2.0, 1.4, 1.3, 1.4, 1.2, 1.1, 1.0], // 0
                 [0.0, 1.4, 1.4, 1.5, 1.0, 0.8, 0.0], // 1
                 [0.0, 1.0, 1.5, 1.4, 1.0, 0.3, 0.0], // 2
                 [0.0, 0.0, 1.2, 2.0, 1.2, 0.0, 0.0], // 3
                 [0.0, 0.3, 1.0, 1.4, 1.5, 1.0, 0.0], // 4
                 [0.0, 0.8, 1.0, 1.5, 1.4, 1.4, 0.0], // 5
-                [1.0, 1.1, 1.2, 1.4, 1.3, 1.4, 2.0],
-            ]; // 6
+                [1.0, 1.1, 1.2, 1.4, 1.3, 1.4, 2.0], // 6
+            ]; 
             for (let i = 0; i < board.length - 1; i++) {
                 for (let j = 0; j < board[i].length; j++) {
                     if (board[i][j] == id_Agent) {
                         valor = valor + valor_Board_2[i][j];
-                        //console.log('leyendo: ', [i,j])
                     }
                 }
             }
@@ -814,7 +704,6 @@ function Winner(board = [], id_Agent) {
                     if (contarCamino(board, [i, 0], hash, id_Agent)) {
                         valor = peso;
                     }
-                    //console.log(hash)
                 }
             }
             break;
@@ -826,7 +715,6 @@ function Winner(board = [], id_Agent) {
                     if (contarCamino(board, [0, i], hash, id_Agent)) {
                         valor = peso;
                     }
-                    //console.log(hash)
                 }
             }
             break;
@@ -840,7 +728,7 @@ function Winner(board = [], id_Agent) {
  * @param {Matrix} board
  * @param {Array} pos
  * @param {Array} hash
- * @param {int} id_Agent
+ * @param {Number} id_Agent
  */
 function contarCamino(board, pos, hash = [], id_Agent) {
     let around = checkAround(board, pos);
@@ -949,22 +837,23 @@ function contarCamino(board, pos, hash = [], id_Agent) {
     return bool;
 }
 
-// TODO: cortar caminos que son más largos que el más corto que he encontrado
-function Dijktra(board, id_Agent) {
+/**
+ * Calcula el camino mas corto, retorna la cantidad de pasos minimos para ganar.
+ * @param {Array} board 
+ * @param {String} id_Agent 
+ */
+function Dijkstra(board, id_Agent) {
     camMin = 99;
-    //let src=[0,0];//row,colum
     let minPQ = [];
-    let visited = []; //ahora es caminos
+    let visited = [];
     let superMin = [0, 999999999999];
 
-    //minPQ.push([src,1]);//[pos,dis,padre]
     switch (id_Agent) {
         case '1':
             for (let i = 0; i < board.length - 1; i++) {
                 if (!board[i].includes('1')) {
                     continue;
                 }
-                //console.log("Paso por el For de src: ", i)
                 //Agrego el punto de partida
                 let src = [i, 0];
                 if (board[i][0] == 0) {
@@ -1001,8 +890,6 @@ function Dijktra(board, id_Agent) {
                 if (!aux1) {
                     continue;
                 }
-
-                //console.log("Paso por el For de src: ", i)
                 //Agrego el punto de partida
                 let src = [0, i];
                 if (board[0][i] == 0) {
@@ -1027,14 +914,14 @@ function Dijktra(board, id_Agent) {
                 visited = [];
             }
             break;
-        default:
-            console.log('Dijktra() failed: not valid id_Agent');
-            break;
     }
     return superMin[1];
-    //console.log('Pasos Min: ',superMin[1])
 }
 
+/**
+ * Retorna el valor minimo de un array
+ * @param {Array} minPQ 
+ */
 function sacarMin(minPQ) {
     let min = 9999999999999;
     let pos = 0;
@@ -1051,19 +938,22 @@ function sacarMin(minPQ) {
     return aux[0];
 }
 
+/**
+ * Busca un camino sin repetir un estado anterior agregando a la cola los nodos visitados.
+ * @param {Number} min 
+ * @param {Array} board 
+ * @param {Array} minPQ 
+ * @param {String} id_Agent 
+ * @param {Array} visited 
+ */
 function checkArroun(min, board, minPQ, id_Agent, visited) {
-    //console.log(`Llego: ${min}`)
     for (let i = 1; i <= 6; i++) {
-        //console.log(`For numero: ${i}`)
         if (id_Agent == '1') {
             switch (i) {
                 case 1: //DERECHA
-                    //console.log(`Caso ${i}`)
                     if (min[0][1] < board.length - 1) {
                         let row = min[0][0];
-                        //console.log("Row: ", row)
                         let colum = min[0][1] + 1;
-                        //console.log("Colum: ",colum)
                         if (!visitedBefore([row, colum], visited)) {
                             agregar(
                                 board[row][colum],
@@ -1072,12 +962,10 @@ function checkArroun(min, board, minPQ, id_Agent, visited) {
                                 minPQ,
                                 id_Agent
                             );
-                        } //else console.log(`No agrege: [${row},${colum}]`)
-                        //No se agregan pasos
+                        }
                     }
                     break;
                 case 2: // ARRIBA-DERECHA
-                    //console.log(`Caso ${i}`)
                     if (min[0][0] > 0 && min[0][1] < board.length - 1) {
                         let row = min[0][0] - 1;
                         let colum = min[0][1] + 1;
@@ -1089,12 +977,10 @@ function checkArroun(min, board, minPQ, id_Agent, visited) {
                                 minPQ,
                                 id_Agent
                             );
-                        } //else console.log(`No agrege: [${row},${colum}]`)
-                        //No se agregan pasos
+                        }
                     }
                     break;
                 case 3: //ABAJO
-                    //console.log(`Caso ${i}`)
                     if (min[0][0] < board.length - 1) {
                         let row = min[0][0] + 1;
                         let colum = min[0][1];
@@ -1106,12 +992,10 @@ function checkArroun(min, board, minPQ, id_Agent, visited) {
                                 minPQ,
                                 id_Agent
                             );
-                        } //else console.log(`No agrege: [${row},${colum}]`)
-                        //No se agregan pasos
+                        }
                     }
                     break;
                 case 4: //ABAJO-IZQUIERDA
-                    //console.log(`Caso ${i}`)
                     if (min[0][1] > 0 && min[0][0] < board.length - 1) {
                         let row = min[0][0] + 1;
                         let colum = min[0][1] - 1;
@@ -1123,12 +1007,10 @@ function checkArroun(min, board, minPQ, id_Agent, visited) {
                                 minPQ,
                                 id_Agent
                             );
-                        } //else console.log(`No agrege: [${row},${colum}]`)
-                        //No se agregan pasos
+                        }
                     }
                     break;
                 case 5: // ARRIBA
-                    //console.log(`Caso ${i}`)
                     if (min[0][0] > 0) {
                         let row = min[0][0] - 1;
                         let colum = min[0][1];
@@ -1140,12 +1022,10 @@ function checkArroun(min, board, minPQ, id_Agent, visited) {
                                 minPQ,
                                 id_Agent
                             );
-                        } //else console.log(`No agrege: [${row},${colum}]`)
-                        //No se agregan pasos
+                        }
                     }
                     break;
                 case 6: //IZQUIERDA
-                    //console.log(`Caso ${i}`)
                     if (min[0][1] > 0) {
                         let row = min[0][0];
                         let colum = min[0][1] - 1;
@@ -1157,8 +1037,7 @@ function checkArroun(min, board, minPQ, id_Agent, visited) {
                                 minPQ,
                                 id_Agent
                             );
-                        } //else console.log(`No agrege: [${row},${colum}]`)
-                        //No se agregan pasos
+                        }
                     }
                     break;
 
@@ -1168,7 +1047,6 @@ function checkArroun(min, board, minPQ, id_Agent, visited) {
         } else {
             switch (i) {
                 case 1: //ABAJO
-                    //console.log(`Caso ${i}`)
                     if (min[0][0] < board.length - 1) {
                         let row = min[0][0] + 1;
                         let colum = min[0][1];
@@ -1180,12 +1058,10 @@ function checkArroun(min, board, minPQ, id_Agent, visited) {
                                 minPQ,
                                 id_Agent
                             );
-                        } //else console.log(`No agrege: [${row},${colum}]`)
-                        //No se agregan pasos
+                        }
                     }
                     break;
                 case 2: //ABAJO-IZQUIERDA
-                    //console.log(`Caso ${i}`)
                     if (min[0][1] > 0 && min[0][0] < board.length - 1) {
                         let row = min[0][0] + 1;
                         let colum = min[0][1] - 1;
@@ -1197,17 +1073,13 @@ function checkArroun(min, board, minPQ, id_Agent, visited) {
                                 minPQ,
                                 id_Agent
                             );
-                        } //else console.log(`No agrege: [${row},${colum}]`)
-                        //No se agregan pasos
+                        }
                     }
                     break;
                 case 3: //DERECHA
-                    //console.log(`Caso ${i}`)
                     if (min[0][1] < board.length - 1) {
                         let row = min[0][0];
-                        //console.log("Row: ", row)
                         let colum = min[0][1] + 1;
-                        //console.log("Colum: ",colum)
                         if (!visitedBefore([row, colum], visited)) {
                             agregar(
                                 board[row][colum],
@@ -1216,12 +1088,10 @@ function checkArroun(min, board, minPQ, id_Agent, visited) {
                                 minPQ,
                                 id_Agent
                             );
-                        } //else console.log(`No agrege: [${row},${colum}]`)
-                        //No se agregan pasos
+                        }
                     }
                     break;
                 case 4: //IZQUIERDA
-                    //console.log(`Caso ${i}`)
                     if (min[0][1] > 0) {
                         let row = min[0][0];
                         let colum = min[0][1] - 1;
@@ -1233,12 +1103,10 @@ function checkArroun(min, board, minPQ, id_Agent, visited) {
                                 minPQ,
                                 id_Agent
                             );
-                        } //else console.log(`No agrege: [${row},${colum}]`)
-                        //No se agregan pasos
+                        }
                     }
                     break;
                 case 5: // ARRIBA-DERECHA
-                    //console.log(`Caso ${i}`)
                     if (min[0][0] > 0 && min[0][1] < board.length - 1) {
                         let row = min[0][0] - 1;
                         let colum = min[0][1] + 1;
@@ -1250,13 +1118,11 @@ function checkArroun(min, board, minPQ, id_Agent, visited) {
                                 minPQ,
                                 id_Agent
                             );
-                        } //else console.log(`No agrege: [${row},${colum}]`)
-                        //No se agregan pasos
+                        }
                     }
                     break;
 
                 case 6: // ARRIBA
-                    //console.log(`Caso ${i}`)
                     if (min[0][0] > 0) {
                         let row = min[0][0] - 1;
                         let colum = min[0][1];
@@ -1268,8 +1134,7 @@ function checkArroun(min, board, minPQ, id_Agent, visited) {
                                 minPQ,
                                 id_Agent
                             );
-                        } //else console.log(`No agrege: [${row},${colum}]`)
-                        //No se agregan pasos
+                        }
                     }
                     break;
 
@@ -1280,6 +1145,14 @@ function checkArroun(min, board, minPQ, id_Agent, visited) {
     }
 }
 
+/**
+ * Agrega a la cola un estado
+ * @param {Number} valueNext 
+ * @param {Number} dis 
+ * @param {Number} nextPos 
+ * @param {Array} minPQ 
+ * @param {String} id_Agent 
+ */
 function agregar(valueNext, dis, nextPos, minPQ, id_Agent) {
     if (camMin > dis) {
         switch (valueNext) {
@@ -1312,33 +1185,22 @@ function agregar(valueNext, dis, nextPos, minPQ, id_Agent) {
                         }
                     }
                 }
-            /* 
-                if (id_Agent == 1) {
-                    minPQ.push([nextPos, dis]);
-                } else if (id_Agent == 2) {
-                    //no debe agregar el paso
-                } else console.log(`Agente loco`);
-                break;
-            case '2':
-                if (id_Agent == 1) {
-                    //no debe agregar el paso
-                } else if (id_Agent == 2) {
-                    minPQ.push([nextPos, dis]);
-                } else console.log(`Agente loco`);
-                break; */
             default:
-                //no debe agregar el paso
                 break;
         }
     }
 }
+
+/**
+ * Retorna true si es una posicion ya visitada y false de lo contrario
+ * @param {Array} pos 
+ * @param {Array} visited 
+ */
 function visitedBefore(pos, visited) {
     for (let i = 0; i < visited.length; i++) {
-        //console.log(`Row: ${visited[i][0][0]}`)
-        //console.log(`Colum: ${visited[i][0][1]}`)
+        
         if (visited[i][0][0] == pos[0]) {
             if (visited[i][0][1] == pos[1]) {
-                //console.log('paso por aqui')
                 return true;
             }
         }
@@ -1346,19 +1208,28 @@ function visitedBefore(pos, visited) {
     return false;
 }
 
+/**
+ * Busca el camino más corto entre dos nodos
+ * @param {Array} posFin 
+ * @param {Array} caminos 
+ */
 function buscarCamino(posFin, caminos) {
     for (let i = 0; i < caminos.length; i++) {
         if (caminos[i][0][0] == posFin[0]) {
             if (caminos[i][0][1] == posFin[1]) {
-                //console.log("El camino es",caminos[i]);
                 return caminos[i];
             }
         }
     }
-    //console.log('No se puede llegar al punto: ',posFin)
     return null;
 }
 
+/**
+ * Retorna un array con el camino más corto
+ * @param {String} id_Agent
+ * @param {Array} board
+ * @param {Array} caminos
+ */
 function shortestWay(id_Agent, board, caminos) {
     let min = [0, 9999999999];
     let size = board.length;
@@ -1366,9 +1237,7 @@ function shortestWay(id_Agent, board, caminos) {
         case '1':
             for (let i = 0; i < size; i++) {
                 let way = buscarCamino([i, size - 1], caminos);
-                //console.log('busco',[i,size-1]);
                 if (way != null) {
-                    //console.log("dis: ", way[1]);
                     if (way[1] < min[1]) {
                         min = way;
                     }
@@ -1378,9 +1247,7 @@ function shortestWay(id_Agent, board, caminos) {
         case '2':
             for (let i = 0; i < size; i++) {
                 let way = buscarCamino([size - 1, i], caminos);
-                //console.log('busco',[size-1,i]);
                 if (way != null) {
-                    //console.log("dis: ", way[1]);
                     if (way[1] < min[1]) {
                         min = way;
                     }
