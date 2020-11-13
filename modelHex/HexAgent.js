@@ -402,7 +402,11 @@ function generarHojas(listOfChildren, limite, id_Agent, fal) {
 }
 
 /**
- * Copia un board en un clipboard (muy original)
+ * Crea una copia de un array 2D en clipboard
+ * @param {Array} clipboard 
+ * @param {Array2D} board 
+ * @param {Array} pos 
+ * @param {string} id_Agent 
  */
 function copyBoard(clipboard, board, pos, id_Agent) {
     let length = board.length;
@@ -421,7 +425,10 @@ function copyBoard(clipboard, board, pos, id_Agent) {
 }
 
 /**
- * Es agregar nodo pero con la nueva implementacion :D
+ * Agrega los hijos del nodo enviado en su parametro children
+ * @param {Object} nodoEvaluado 
+ * @param {string} id_Agent 
+ * @param {bool} tru 
  */
 function agregarHijos(nodoEvaluado, id_Agent, tru) {
     let board = nodoEvaluado.board;
@@ -504,8 +511,13 @@ function agregarHijos(nodoEvaluado, id_Agent, tru) {
 }
 
 /**
- * Funcion minimax que espera un nodo PAPAPAPAPAPA, osea el papa conoce a los hijos
+ * Funcion minimax, dado un nodo retorna el valor de la mejor heuristica en sus hojas.
+ * @param {Object} node 
+ * @param {int} limite 
+ * @param {bool} minoMax 
+ * @param {string} id_Agent 
  */
+
 function minimax(node, limite, minoMax, id_Agent) {
     let value = 0;
     if ((limite = 0 || node.children[0] == null)) {
@@ -560,10 +572,14 @@ function minimax(node, limite, minoMax, id_Agent) {
 }
 
 /**
- * Funcion alfa_Beta que espera un nodo PAPAPAPAPAPA, osea el papa conoce a los hijos
- *
+ * Poda alfa beta, retorna el mejor valor de la heuristica de sus hojas a la vez que crea el arbol eliminando nodos
+ * que nunca recorrerá.
+ * @param {Object} node 
+ * @param {int} limite 
+ * @param {int} a 
+ * @param {int} b 
+ * @param {string} id_Agent 
  */
-
 function alfa_Beta(node, limite, a, b, id_Agent) {
     if (node.level < lim) {
         agregarHijos(node, id_Agent, true);
@@ -606,7 +622,12 @@ function alfa_Beta(node, limite, a, b, id_Agent) {
 }
 
 /**
- * Crea un Nodo con la nueva implementacion
+ * Crea un hijo basado en el padre
+ * @param {*} type 
+ * @param {*} level 
+ * @param {*} utility 
+ * @param {*} board 
+ * @param {*} action 
  */
 function crearHijo(type, level, utility, board, action) {
     let node = {
@@ -622,7 +643,8 @@ function crearHijo(type, level, utility, board, action) {
 
 /**
  * Dado el nodo padre, busca en sus primeros hijos cual es el que coicide con el valor maximo y retorna su accion
- *
+ * @param {*} nodo 
+ * @param {*} value 
  */
 function retornarPosition(nodo, value) {
     for (let i = 0; i < nodo.children.length; i++) {
@@ -634,7 +656,8 @@ function retornarPosition(nodo, value) {
 
 /**
  * Devuelve las primeras 4 posiciones disponibles
- *
+ * @param {Array2D} board 
+ * @param {string} agente 
  */
 function fijkstra(board, agente) {
     //console.log('fijstra');
@@ -925,6 +948,7 @@ function contarCamino(board, pos, hash = [], id_Agent) {
     }
     return bool;
 }
+
 // TODO: cortar caminos que son más largos que el más corto que he encontrado
 function Dijktra(board, id_Agent) {
     camMin = 99;
@@ -1004,7 +1028,7 @@ function Dijktra(board, id_Agent) {
             }
             break;
         default:
-            console.log('QUe pedo con el id_Agent');
+            console.log('Dijktra() failed: not valid id_Agent');
             break;
     }
     return superMin[1];
@@ -1364,7 +1388,7 @@ function shortestWay(id_Agent, board, caminos) {
             }
             break;
         default:
-            console.log('Qque es esto ???');
+            console.log('shortestWay() failed: not valid id_Agent');
             break;
     }
     return min;
