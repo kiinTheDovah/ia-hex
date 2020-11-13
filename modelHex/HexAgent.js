@@ -1225,7 +1225,7 @@ function buscarCamino(posFin, caminos) {
 }
 
 /**
- * Retorna un array con el camino más corto
+ * Sacar el mínimo de una cola de prioridades
  * @param {String} id_Agent
  * @param {Array} board
  * @param {Array} caminos
