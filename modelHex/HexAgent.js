@@ -48,7 +48,7 @@ class HexAgent extends Agent {
         if (nTurn == 0) {
             // First move
             //console.log('el turno del agente: ',this.getID())
-            let move = [Math.floor(size / 2), Math.floor(size / 2) - 1];
+            let move = [Math.floor(size / 2) - 1, Math.floor(size / 2)];
             /* move =
                 available[Math.round(Math.random() * (available.length - 1))]; */
             return move;
@@ -221,7 +221,7 @@ function countConnects(board, pid) {
     let rid = rival(pid); //rival id */
     let length = board.length;
     let valOf0C = 0;
-    let valOf1C = 0;
+    let valOf1C = 0.2;
     let valOf2C = 1;
     let valOf3C = 0.5;
     let valOf4plusC = -1;
@@ -292,7 +292,7 @@ function heuristica(board, id_Agent) {
 
     puentesVal = puentes(board, id_Agent) - puentes(board, rid) / 3;
     connectsVal = countConnects(board, id_Agent) - countConnects(board, rid);
-    valueBo = valueBoard(board, id_Agent) - valueBoard(board, rival(id_Agent));
+    //valueBo = valueBoard(board, id_Agent) - valueBoard(board, rival(id_Agent));
     winwin = Winner(board, id_Agent) - Winner(board, rival(id_Agent));
     dijk =
         10 *
@@ -688,9 +688,9 @@ function fijkstra(board, agente) {
     }
     let bestChilds = [];
     let leng = 8;
-    /* if (6 < leng) {
-        leng = leng / 2;
-    } */
+    if (8 > orderedChild.length) {
+        leng = orderedChild.length;
+    }
     //console.log('orderedChild', orderedChild);
     for (let i = 0; i < leng; i++) {
         bestChilds.push(orderedChild[i]);
