@@ -1,6 +1,6 @@
 const Agent = require('ai-agents').Agent;
 var infinito = Number.MAX_SAFE_INTEGER;
-var lim = 2;
+var lim = 4;
 var camMin = 99;
 class HexAgent extends Agent {
     constructor(value) {
@@ -19,13 +19,14 @@ class HexAgent extends Agent {
         let size = board.length;
         let available = getHexAt(board, 0);
         let nTurn = size * size - available.length;
-        let limite;
-        if (available.length > 20) {
-            limite = 2;
+
+        let limite = lim;
+        /* if (available.length > 20) {
+            limite = 5;
         } else {
             limite = 4;
-        }
-        console.log('limite', limite);
+        } */
+        //console.log('limite', limite);
         let agente = this.getID();
 
         let raiz = {
@@ -47,18 +48,24 @@ class HexAgent extends Agent {
         if (nTurn == 0) {
             // First move
             //console.log('el turno del agente: ',this.getID())
-            console.log([Math.floor(size / 2), Math.floor(size / 2) - 1]);
-            return [Math.floor(size / 2), Math.floor(size / 2) - 1];
+            let move = [Math.floor(size / 2), Math.floor(size / 2) - 1];
+            move =
+                available[Math.round(Math.random() * (available.length - 1))];
+            return move;
         } else if (nTurn == 1) {
             //console.log('el turno del agente: ',this.getID())
-            console.log([Math.floor(size / 2), Math.floor(size / 2)]);
-            return [Math.floor(size / 2), Math.floor(size / 2)];
+            let move = [Math.floor(size / 2), Math.floor(size / 2)];
+            move =
+                available[Math.round(Math.random() * (available.length - 1))];
+            return move;
         }
         //console.log(amplitud(root,this.getID(),4));
         //console.log(minimax(nodoMinmax,2,nodoMinmax.type,this.getID()))
         console.log('Pienso, luego existo...');
         //Se crea el arbol con todo en infinito
-        let valorAlpha = generarArbol(raiz, agente, limite);
+
+        let valorAlpha = alfa_Beta(raiz, limite, -infinito, infinito, agente);
+
         //Le pasamos el arbol a minimax para que retorne el mejor valor y cambie los infinitos del arbol
         /*
         //ESTE COMENTARIO ES DEL MINIMAX
@@ -91,7 +98,7 @@ class HexAgent extends Agent {
             agente
         ); */
         let jugada = retornarPosition(raiz, valorAlpha);
-        console.log('Arbol generado: ', raiz);
+        //console.log('Arbol generado: ', raiz);
         console.log(
             'El valor del mejor camino con alfa-beta en ' +
                 limite +
@@ -210,8 +217,8 @@ function checkAround(board, pos) {
  */
 function countConnects(board, pid) {
     let cells = 0;
-    let playerChips = getHexAt(board, 1);
-    let rid = rival(pid); //rival id
+    /* let playerChips = getHexAt(board, 1);
+    let rid = rival(pid); //rival id */
     let length = board.length;
     let valOf0C = 0;
     let valOf1C = 1;
@@ -286,13 +293,13 @@ function heuristica(board, id_Agent) {
     puentesVal = puentes(board, id_Agent);
     -puentes(board, rid) / 3;
     connectsVal = countConnects(board, id_Agent) - countConnects(board, rid);
-    //valueBo = valueBoard(board, id_Agent) - valueBoard(board, rival(id_Agent));
+    valueBo = valueBoard(board, id_Agent) - valueBoard(board, rival(id_Agent));
     winwin = Winner(board, id_Agent) - Winner(board, rival(id_Agent));
     dijk =
         10 *
         (8 / (1 + Dijktra(board, id_Agent)) - 4 / (1 + Dijktra(board, rid)));
 
-    result = 3 * puentesVal + connectsVal + 3 * dijk; //+ valueBo;
+    result = 3 * puentesVal + connectsVal + 3 * dijk; // //+ valueBo;
     if (winwin == 500) {
         let available = getHexAt(board, 0);
         result += winwin + available.length * 1000;
@@ -359,21 +366,15 @@ function puentes(board = [], id_Agent, type) {
  * @param {int} limite
  */
 function generarArbol(nodo, id_Agent, limite) {
-    /* if (avoidRepeatedState(nodoEvaluado, hash)) {
-        agregarHijos(nodoEvaluado, id_Agent);
-    } //else console.log('me salte un nodo') */
-    /*    if (nodo.children[0] == null) {
-        console.log('Ningun camino es viable.');
-    } */
-    let valAlfa = alfa_Beta(nodo, limite, -infinito, infinito, id_Agent);
-    //generarHojas(nodoEvaluado.children, limite, id_Agent);
-    return valAlfa;
+    agregarHijos(nodo, id_Agent, false);
+    generarHojas(nodo.children, limite, id_Agent, false);
 }
 
 /**
  * Funcion recursiva que actualiza el array de las hojas del root
  */
-function generarHojas(listOfChildren, limite, id_Agent) {
+function generarHojas(listOfChildren, limite, id_Agent, fal) {
+    //console.log('listOfChildren', listOfChildren);
     if (listOfChildren[0] == null) {
         return null;
     }
@@ -383,7 +384,7 @@ function generarHojas(listOfChildren, limite, id_Agent) {
     } else {
         for (let i = 0; i < listOfChildren.length; i++) {
             //Esto falla si no llega a tener hijos
-            agregarHijos(listOfChildren[i], id_Agent);
+            agregarHijos(listOfChildren[i], id_Agent, fal);
             if (listOfChildren[i].children[0] == null) {
                 /* console.log(
                     'Dijkstra() failed: Hay un men sin hijos en el nivel: ',
@@ -391,7 +392,7 @@ function generarHojas(listOfChildren, limite, id_Agent) {
                 ); */
             }
             listOfChildren[i].children.push(
-                generarHojas(listOfChildren[i].children, limite, id_Agent)
+                generarHojas(listOfChildren[i].children, limite, id_Agent, fal)
             );
             listOfChildren[i].children.pop();
         }
@@ -420,15 +421,54 @@ function copyBoard(clipboard, board, pos, id_Agent) {
 /**
  * Es agregar nodo pero con la nueva implementacion :D
  */
-function agregarHijos(nodoEvaluado, id_Agent) {
+function agregarHijos(nodoEvaluado, id_Agent, tru) {
     let board = nodoEvaluado.board;
+    //console.log('nodoEvaluado', nodoEvaluado);
     let id_Rival = rival(id_Agent);
+    if (!tru) {
+        let availab = getHexAt(board, 0);
+        for (let i = 0; i < availab.length; i++) {
+            //console.log('aqui');
+            let row = availab[i][0];
+            let col = availab[i][1];
 
-    let dijkstra = fijkstra(board);
-
+            if (board[row][col] == 0) {
+                let newBoard = [];
+                if (nodoEvaluado.type == 'MAX') {
+                    copyBoard(newBoard, board, [row, col], id_Agent);
+                    nodoEvaluado.children.push(
+                        crearHijo(
+                            'MIN',
+                            nodoEvaluado.level + 1,
+                            -nodoEvaluado.utility,
+                            newBoard,
+                            [row, col]
+                        )
+                    );
+                } else {
+                    copyBoard(newBoard, board, [row, col], id_Rival);
+                    nodoEvaluado.children.push(
+                        crearHijo(
+                            'MAX',
+                            nodoEvaluado.level + 1,
+                            -nodoEvaluado.utility,
+                            newBoard,
+                            [row, col]
+                        )
+                    );
+                }
+            }
+        }
+        return;
+    }
+    let dijkstra = fijkstra(board, id_Agent);
+    //console.log('aqui si llegóooooo', dijkstra);
+    //console.log('aqui', dijkstra);
+    //console.log('dijkstra.length', dijkstra.length);
     for (let i = 0; i < dijkstra.length; i++) {
-        let row = dijkstra[i][0];
-        let col = dijkstra[i][1];
+        //console.log('aqui');
+        let row = dijkstra[i].action[0];
+        let col = dijkstra[i].action[1];
 
         if (board[row][col] == 0 && Winner(board, id_Agent) == 0) {
             let newBoard = [];
@@ -464,13 +504,36 @@ function agregarHijos(nodoEvaluado, id_Agent) {
 /**
  * Funcion minimax que espera un nodo PAPAPAPAPAPA, osea el papa conoce a los hijos
  */
-function minimax(node, limite, minMax, id_Agent) {
+function minimax(node, limite, minoMax, id_Agent) {
     let value = 0;
     if ((limite = 0 || node.children[0] == null)) {
         //console.log('valor de la hoja: ',heuristica(node.board, id_Agent))
-        return heuristica(node.board, id_Agent);
+        let puentesVal;
+        let connectsVal;
+        let valueBo;
+        let winwin;
+        let rid = rival(id_Agent); //rival id
+        let board = node.board;
+
+        puentesVal = puentes(board, id_Agent);
+        -puentes(board, rid) / 3;
+        connectsVal =
+            countConnects(board, id_Agent) - countConnects(board, rid);
+        valueBo = valueBoard(board, id_Agent) - valueBoard(board, rid);
+        winwin = Winner(board, id_Agent) - Winner(board, rid);
+
+        let result = 3 * puentesVal + connectsVal + 2 * valueBo;
+        if (winwin == 500) {
+            let available = getHexAt(board, 0);
+            result += winwin + available.length * 1000;
+        } else if (winwin == -500) {
+            let available = getHexAt(board, 0);
+            result -= winwin + available.length * 1000;
+        }
+        node.utility = result; //heuristica(node.board, id_Agent);
+        return node.utility;
     }
-    if (minMax == 'MAX') {
+    if (minoMax == 'MAX') {
         value = -infinito;
         for (let i = 0; i < node.children.length; i++) {
             //console.log('evaluando: ',node.children[i])
@@ -502,7 +565,7 @@ function minimax(node, limite, minMax, id_Agent) {
 
 function alfa_Beta(node, limite, a, b, id_Agent) {
     if (node.level < lim) {
-        agregarHijos(node, id_Agent);
+        agregarHijos(node, id_Agent, true);
     }
     if ((limite = 0 || node.children[0] == null)) {
         //console.log('valor de la hoja: ',heuristica(node.board, id_Agent))
@@ -572,10 +635,67 @@ function retornarPosition(nodo, value) {
  * Devuelve las primeras 4 posiciones disponibles
  *
  */
-function fijkstra(board) {
+function fijkstra(board, agente) {
+    //console.log('fijstra');
     // false dijkstra
-    let available = getHexAt(board, 0);
-    let length = available.length; //return dijkstra;
+    let starLim = 1;
+    //let available = getHexAt(board, 0);
+    //let length = available.length; //return dijkstra;
+    let staRoot = {
+        type: 'MAX',
+        level: 0,
+        children: [],
+        utility: -infinito,
+        board: board,
+        action: null,
+    };
+    //console.log('staRoot.children', staRoot);
+    generarArbol(staRoot, agente, starLim);
+
+    //console.log('hay arbol');
+    minimax(staRoot, starLim, staRoot.type, agente);
+    //console.log('staRoot', staRoot);
+    //console.log('minmax?');
+    let orderedChild = [];
+    orderedChild.push(staRoot.children[0]);
+    //console.log('aqui si llegó');
+
+    for (let i = 1; i < staRoot.children.length; i++) {
+        //console.log('aqui si llegó');
+        /* if (staRoot.children[1] == null) {
+            break;
+        } */
+        for (let j = 0; j < orderedChild.length; j++) {
+            //console.log(orderedChild.length);
+            /* if (staRoot.children[1] == null) {
+                break;
+            } */
+            //console.log('children', staRoot.children[i]);
+            //console.log(j);
+
+            if (staRoot.children[i].utility >= orderedChild[j].utility) {
+                orderedChild.splice(j, 0, staRoot.children[i]);
+                //console.log('voy a hacer un break');
+                break;
+            }
+            if (j == orderedChild.length - 1) {
+                orderedChild.push(staRoot.children[i]);
+                //console.log('voy a hacer un break');
+                break;
+            }
+        }
+    }
+    let bestChilds = [];
+    let leng = 6;
+    /* if (6 < leng) {
+        leng = leng / 2;
+    } */
+    //console.log('orderedChild', orderedChild);
+    for (let i = 0; i < leng; i++) {
+        bestChilds.push(orderedChild[i]);
+    }
+    //console.log('best', bestChilds);
+    return bestChilds;
     /* 
         available.splice(Math.round(Math.random() * (length - 1)), 1)[0],
         available.splice(Math.round(Math.random() * (length - 2)), 1)[0],
@@ -595,7 +715,9 @@ function fijkstra(board) {
         available[8],
         available[10],
         available[11],
-    ];  */ return available;
+    ]; */
+    //return dijkstra;
+    //return available;
 }
 
 /**
