@@ -49,14 +49,14 @@ class HexAgent extends Agent {
             // First move
             //console.log('el turno del agente: ',this.getID())
             let move = [Math.floor(size / 2), Math.floor(size / 2) - 1];
-            move =
-                available[Math.round(Math.random() * (available.length - 1))];
+            /* move =
+                available[Math.round(Math.random() * (available.length - 1))]; */
             return move;
         } else if (nTurn == 1) {
             //console.log('el turno del agente: ',this.getID())
             let move = [Math.floor(size / 2), Math.floor(size / 2)];
-            move =
-                available[Math.round(Math.random() * (available.length - 1))];
+            /* move =
+                available[Math.round(Math.random() * (available.length - 1))]; */
             return move;
         }
         //console.log(amplitud(root,this.getID(),4));
@@ -355,6 +355,9 @@ function puentes(board = [], id_Agent) {
         }
     }
     //console.log('numero de puentes: ', valor)
+    if (valor > 2) {
+        valor = 2;
+    }
     return valor;
 }
 
@@ -514,8 +517,7 @@ function minimax(node, limite, minoMax, id_Agent) {
         let rid = rival(id_Agent); //rival id
         let board = node.board;
 
-        puentesVal = puentes(board, id_Agent);
-        -puentes(board, rid) / 3;
+        puentesVal = puentes(board, id_Agent) - puentes(board, rid) / 3;
         connectsVal =
             countConnects(board, id_Agent) - countConnects(board, rid);
         valueBo = valueBoard(board, id_Agent) - valueBoard(board, rid);
