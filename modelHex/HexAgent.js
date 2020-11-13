@@ -936,7 +936,7 @@ function Dijktra(board, id_Agent) {
     //minPQ.push([src,1]);//[pos,dis,padre]
     switch (id_Agent) {
         case '1':
-            for (let i = 0; i < board.length; i++) {
+            for (let i = 0; i < board.length - 1; i++) {
                 if (!board[i].includes('1')) {
                     continue;
                 }
@@ -966,7 +966,7 @@ function Dijktra(board, id_Agent) {
             }
             break;
         case '2':
-            for (let i = 0; i < board.length; i++) {
+            for (let i = 2; i < board.length - 2; i++) {
                 let aux1 = false;
                 for (let j = 0; j < board.length; j++) {
                     if (board[j][i] == '2') {
