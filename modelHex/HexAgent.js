@@ -221,8 +221,8 @@ function countConnects(board, pid) {
     let rid = rival(pid); //rival id */
     let length = board.length;
     let valOf0C = 0;
-    let valOf1C = 1;
-    let valOf2C = 0.4;
+    let valOf1C = 0;
+    let valOf2C = 1;
     let valOf3C = 0.5;
     let valOf4plusC = -1;
 
@@ -290,8 +290,7 @@ function heuristica(board, id_Agent) {
     let dijk;
     let rid = rival(id_Agent); //rival id
 
-    puentesVal = puentes(board, id_Agent);
-    -puentes(board, rid) / 3;
+    puentesVal = puentes(board, id_Agent) - puentes(board, rid) / 3;
     connectsVal = countConnects(board, id_Agent) - countConnects(board, rid);
     valueBo = valueBoard(board, id_Agent) - valueBoard(board, rival(id_Agent));
     winwin = Winner(board, id_Agent) - Winner(board, rival(id_Agent));
@@ -299,7 +298,7 @@ function heuristica(board, id_Agent) {
         10 *
         (8 / (1 + Dijktra(board, id_Agent)) - 4 / (1 + Dijktra(board, rid)));
 
-    result = 3 * puentesVal + connectsVal + 3 * dijk; // //+ valueBo;
+    result = 1 * puentesVal + connectsVal + 4 * dijk; // //+ valueBo;
     if (winwin == 500) {
         let available = getHexAt(board, 0);
         result += winwin + available.length * 1000;
@@ -316,46 +315,46 @@ function heuristica(board, id_Agent) {
  * @param {Matrix} board
  * @param {int} id_Agent
  */
-function puentes(board = [], id_Agent, type) {
+function puentes(board = [], id_Agent) {
+    //}, type){
     let valor = 0;
-
-    if (type == 'MIN') {
-        id_Agent = rival(id_Agent);
-    }
-
-    for (let i = 0; i < board.length - 1; i++) {
-        for (let j = 0; j < board[i].length; j++) {
-            if (
-                board[i][j] == id_Agent &&
-                (board[i][j - 1] !== rival(id_Agent) &&
-                    board[i + 1][j - 1] !== rival(id_Agent))
-            ) {
-                try {
-                    if (board[i + 1][j - 2] == id_Agent) {
-                        valor = valor + 1;
-                    }
-                } catch (e) {}
+    let peso = 1;
+    let length = board.length;
+    let rid = rival(id_Agent); //rival id
+    for (let i = 0; i < length - 1; i++) {
+        for (let j = 0; j < length; j++) {
+            if (board[i][j] == id_Agent) {
                 try {
                     if (
-                        board[i + 2][j - 1] == id_Agent &&
-                        (board[i + 1][j - 1] !== rival(id_Agent) &&
-                            board[i + 1][j] !== rival(id_Agent))
+                        // Hay puente ABAJO a la IZQUIERDA? (equivalente a ARRIBA a la DERECHA)
+                        board[i][j - 1] == 0 && //la izquierda está vacía?
+                        board[i + 1][j - 1] == 0 && //abajo a la izquierda está vacía?
+                        board[i + 1][j - 2] == id_Agent // existe puente abajo a la izquierda?
                     ) {
-                        valor = valor + 1;
-                    }
-                } catch (e) {}
-                try {
-                    if (
-                        board[i + 1][j + 1] == id_Agent &&
-                        (board[i + 1][j] !== rival(id_Agent) &&
-                            board[i][j + 1] !== rival(id_Agent))
+                        valor += peso;
+                        //console.log('Hay un puente a la IZQUIERDA de: ', [i,j], 'es',[i+1,j-2])
+                    } else if (
+                        // Hay puente ABAJO? (equivalente a ARRIBA)
+                        board[i + 1][j] == 0 && // abajo está vacío?
+                        board[i + 1][j - 1] == 0 && //abajo a la izquierda está vacío?
+                        board[i + 2][j - 1] == id_Agent //hay puente abajo?
                     ) {
-                        valor = valor + 1;
+                        valor += peso;
+                        //console.log('Hay un puente ABAJO de: ', [i,j], 'es',[i+2,j-1])
+                    } else if (
+                        // Hay puente ABAJO a la DERECHA? (equivalente a ARRIBA a la IZQUIERDA)
+                        board[i + 1][j] == 0 && //abajo está vacío?
+                        board[i][j + 1] == 0 && //derecha está vacío?
+                        board[i + 1][j + 1] == id_Agent //hay puente abajo a la derecha?
+                    ) {
+                        valor += peso;
+                        //console.log('Hay un puente a la DERECHA de: ', [i,j],'es',[i+1],',',[j+1])
                     }
                 } catch (e) {}
             }
         }
     }
+    //console.log('numero de puentes: ', valor)
     return valor;
 }
 
@@ -522,7 +521,7 @@ function minimax(node, limite, minoMax, id_Agent) {
         valueBo = valueBoard(board, id_Agent) - valueBoard(board, rid);
         winwin = Winner(board, id_Agent) - Winner(board, rid);
 
-        let result = 3 * puentesVal + connectsVal + 2 * valueBo;
+        let result = 2 * puentesVal + connectsVal + valueBo;
         if (winwin == 500) {
             let available = getHexAt(board, 0);
             result += winwin + available.length * 1000;
@@ -686,7 +685,7 @@ function fijkstra(board, agente) {
         }
     }
     let bestChilds = [];
-    let leng = 6;
+    let leng = 8;
     /* if (6 < leng) {
         leng = leng / 2;
     } */
